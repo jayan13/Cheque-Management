@@ -1,0 +1,256 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow",
+  "document_type": "Receivable Cheques",
+  "is_active": 1,
+  "modified": "2017-05-12 12:58:30.447324",
+  "name": "Receivable Cheques Cycle",
+  "override_status": 0,
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "send_email_alert": 0,
+  "states": [
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Received",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Received"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Deposited",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Deposited"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Collected",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Collected"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Returned",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Returned"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Rejected",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Rejected"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Cancelled",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Cancelled"
+   }
+  ],
+  "transitions": [
+   {
+    "action": "Cheque Deposited",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Deposited",
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Received"
+   },
+   {
+    "action": "Cheque Cancelled",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Cancelled",
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Received"
+   },
+   {
+    "action": "Cheque Collected",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Collected",
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Deposited"
+   },
+   {
+    "action": "Cheque Returned",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Returned",
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Deposited"
+   },
+   {
+    "action": "Cheque Rejected",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Rejected",
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Returned"
+   },
+   {
+    "action": "Cheque Deposited",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Deposited",
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Returned"
+   },
+   {
+    "action": "Cheque Cancelled",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Cancelled",
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Returned"
+   }
+  ],
+  "workflow_name": "Receivable Cheques Cycle",
+  "workflow_state_field": "cheque_status"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow",
+  "document_type": "Payable Cheques",
+  "is_active": 1,
+  "modified": "2017-05-12 16:54:01.048655",
+  "name": "Payable Cheques Cycle",
+  "override_status": 0,
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "send_email_alert": 0,
+  "states": [
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Payable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Issued",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Issued"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Payable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Deducted",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Deducted"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Payable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Cancelled",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Cancelled"
+   }
+  ],
+  "transitions": [
+   {
+    "action": "Cheque Deducted",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Deducted",
+    "parent": "Payable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Issued"
+   },
+   {
+    "action": "Cheque Cancelled",
+    "allow_self_approval": 0,
+    "allowed": "All",
+    "condition": null,
+    "next_state": "Cheque Cancelled",
+    "parent": "Payable Cheques Cycle",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "state": "Cheque Issued"
+   }
+  ],
+  "workflow_name": "Payable Cheques Cycle",
+  "workflow_state_field": "cheque_status"
+ }
+]
