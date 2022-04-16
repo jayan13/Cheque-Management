@@ -25,3 +25,103 @@ frappe.listview_settings['Receivable Cheques Status'] = {
 		} 
  	}
 };
+
+frappe.listview_settings['Receivable Cheques'] = {
+
+	onload(listview) {
+		 
+		 listview.page.actions.find('[data-label="Cheque Collected"]').click(function()
+		 {
+			
+			const docnames1 = listview.get_checked_items(true).map(docname => docname.toString());
+			//console.log(docnames1);
+			frappe.call({
+				method: "cheque_management.api.update_cheque_status",
+				freeze: true,
+				args: {
+					docnames:docnames1,
+					status:"Cheque Collected"
+				},
+				callback: function(r) {
+					console.log(r.message);
+				}
+			});
+			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+			
+		 });
+
+		 listview.page.actions.find('[data-label="Cheque Deposited"]').click(function()
+		 {
+			
+			const docnames2 = listview.get_checked_items(true).map(docname => docname.toString());
+			//console.log(docnames2);
+			frappe.call({
+				method: "cheque_management.api.update_cheque_status",
+				freeze: true,
+				args: {
+					docnames:docnames2,
+					status:"Cheque Deposited"
+				},
+				callback: function(r) {
+					console.log(r.message);
+				}
+			});
+			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+			
+		 });
+		 listview.page.actions.find('[data-label="Cheque Returned"]').click(function()
+		 {
+			
+			const docnames3 = listview.get_checked_items(true).map(docname => docname.toString());
+			frappe.call({
+				method: "cheque_management.api.update_cheque_status",
+				freeze: true,
+				args: {
+					docnames:docnames3,
+					status:"Cheque Returned"
+				},
+				callback: function(r) {
+					console.log(r.message);
+				}
+			});
+			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+			
+		 });
+
+		 listview.page.actions.find('[data-label="Cheque Rejected"]').click(function()
+		 {
+			
+			const docnames4 = listview.get_checked_items(true).map(docname => docname.toString());
+			frappe.call({
+				method: "cheque_management.api.update_cheque_status",
+				freeze: true,
+				args: {
+					docnames:docnames4,
+					status:"Cheque Rejected"
+				},
+				callback: function(r) {
+					console.log(r.message);
+				}
+			});
+			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+			
+		 });
+		 listview.page.actions.find('[data-label="Cheque Cancelled"]').click(function()
+		 {
+			
+			const docnames5 = listview.get_checked_items(true).map(docname => docname.toString());
+			frappe.call({
+				method: "cheque_management.api.update_cheque_status",
+				freeze: true,
+				args: {
+					docnames:docnames5,
+					status:"Cheque Cancelled"
+				},
+				callback: function(r) {
+					console.log(r.message);
+				}
+			});
+			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+		 });
+   }
+ }

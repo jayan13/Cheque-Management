@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe, erpnext
-from frappe.utils import flt, cstr, nowdate, comma_and
+from frappe.utils import flt, cstr, nowdate, comma_and, cint
 from frappe import throw, msgprint, _
 
 def pe_before_submit(self, method):
@@ -145,3 +145,249 @@ def make_journal_entry(self, account1, account2, amount, posting_date=None, part
 		jv.submit()
 		frappe.db.commit()
 		return jv
+
+#---------  bulk update from list view pay rec--------------------------------
+@frappe.whitelist()
+def update_cheque_status(docnames,status):
+	import json
+	docnames=json.loads(docnames)
+	msg=''
+	for dc in docnames:
+		crec=frappe.get_doc("Receivable Cheques", dc)
+		uc_acc = frappe.db.get_value("Company", crec.company, "cheques_under_collection_account")
+		ct_acc = frappe.db.get_value("Company", crec.company, "cross_transaction_account")
+		notes_acc = frappe.db.get_value("Company", crec.company, "receivable_notes_account")
+		rec_acc = frappe.db.get_value("Payment Entry", crec.payment_entry, "paid_from")
+		
+		
+		if status == "Cheque Deposited":
+			msg+=status+" - "+dc+", "
+			make_journal_entry_bulk(crec,status,uc_acc, notes_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False) 
+				
+		if status == "Cheque Collected":
+			msg+=status+" - "+dc+", "
+			party = frappe.db.get_value("Payment Entry", crec.payment_entry, "party")
+			party_type = frappe.db.get_value("Payment Entry", crec.payment_entry, "party_type")
+			make_journal_entry_bulk(crec,status,ct_acc, uc_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
+			make_journal_entry_bulk(crec,status,crec.deposit_bank, rec_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
+				
+		if status == "Cheque Returned":
+			msg+=status+" - "+dc+", "
+			make_journal_entry_bulk(crec,status,notes_acc, uc_acc, crec.amount,party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
+				
+		if status == "Cheque Rejected":
+			msg+=status+" - "+dc+", "
+			cancel_payment_entry(crec,status)
+				
+		if status == "Cheque Cancelled":
+			msg+=status+" - "+dc+", "
+			cancel_payment_entry(crec,status)
+
+
+	return msg
+
+def make_journal_entry_bulk(crec, status, account1, account2, amount, party_type=None, party=None, cost_center=None,save=True, submit=False, last=False):
+	jv = frappe.new_doc("Journal Entry")
+	jv.posting_date = nowdate()
+	jv.company = crec.company
+	jv.cheque_no = crec.cheque_no
+	jv.cheque_date = crec.cheque_date
+	jv.user_remark = crec.remarks or "Cheque Transaction"
+	jv.multi_currency = 0
+	jv.set("accounts", [
+		{
+			"account": account1,
+			"party_type": party_type if (status == "Cheque Cancelled" or status == "Cheque Rejected") else None,
+			"party": party if status == "Cheque Cancelled" else None,
+			"cost_center": cost_center,
+			"project": crec.project,
+			"debit_in_account_currency": amount if amount > 0 else 0,
+			"credit_in_account_currency": abs(amount) if amount < 0 else 0
+		}, {
+			"account": account2,
+			"party_type": party_type if status == "Cheque Received" or status == "Cheque Collected" else None,
+			"party": party if status == "Cheque Received" or status == "Cheque Collected" else None,
+			"cost_center": cost_center,
+			"project": crec.project,
+			"credit_in_account_currency": amount if amount > 0 else 0,
+			"debit_in_account_currency": abs(amount) if amount < 0 else 0,
+			"reference_type": "Journal Entry" if last == True else None,
+			"reference_name": crec.reference_journal if last == True else None
+			}
+	])
+	if save or submit:
+		jv.insert(ignore_permissions=True)
+
+		if submit:
+			jv.submit()
+
+	#crec.append("status_history", {
+	#						"status": status,
+	#						"transaction_date": nowdate(),
+	#						"bank": crec.deposit_bank,
+	#						"debit_account": account1,
+	#						"credit_account": account2,
+	#						"journal_entry": jv.name
+	#					})
+	#crec.bank_changed = 1
+	#crec.submit()
+	midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
+	curidx=1
+	if midx and midx[0][0] is not None:
+		curidx = cint(midx[0][0])+1
+
+	hist=frappe.new_doc("Receivable Cheques Status")
+	hist.docstatus=1
+	hist.parent=crec.name
+	hist.parentfield='status_history'
+	hist.parenttype='Receivable Cheques'
+	hist.status=status
+	hist.idx=curidx
+	hist.transaction_date=nowdate()
+	hist.bank=crec.deposit_bank
+	hist.debit_account=account1
+	hist.credit_account=account2
+	hist.journal_entry=jv.name
+	hist.insert(ignore_permissions=True)
+	frappe.db.commit()
+	message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (jv.name, jv.name)
+	#msgprint(_("Journal Entry {0} created").format(comma_and(message)))
+	message = _("Journal Entry {0} created").format(comma_and(message))
+
+	return message
+
+def cancel_payment_entry(crec, status):
+	if crec.payment_entry: 
+		frappe.get_doc("Payment Entry", crec.payment_entry).cancel()
+
+	#crec.append("status_history", {
+	#							"status": status,
+	#							"transaction_date": nowdate(),
+	#							"bank": crec.deposit_bank
+	#						})
+	#crec.bank_changed = 1
+	#crec.submit()
+	midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
+	curidx=1
+	if midx and midx[0][0] is not None:
+		curidx = cint(midx[0][0])+1
+
+	hist=frappe.new_doc("Receivable Cheques Status")
+	hist.docstatus=1
+	hist.parent=crec.name
+	hist.parentfield='status_history'
+	hist.parenttype='Receivable Cheques'
+	hist.status=status
+	hist.idx=curidx
+	hist.transaction_date=nowdate()
+	hist.bank=crec.deposit_bank
+	hist.insert(ignore_permissions=True)
+	message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (crec.payment_entry, crec.payment_entry)
+	#msgprint(_("Payment Entry {0} Cancelled").format(comma_and(message)))
+	message = _("Payment Entry {0} Cancelled").format(comma_and(message))
+
+	return message
+
+#------------ bulk update list view pay paid ------------
+@frappe.whitelist()
+def update_cheque_status_pay(docnames,status):
+	import json
+	docnames=json.loads(docnames)
+	msg=''
+	for dc in docnames:
+		cpay=frappe.get_doc("Payable Cheques", dc)
+		notes_acc = frappe.db.get_value("Company", cpay.company, "payable_notes_account")
+		ec_acc = frappe.db.get_value("Company", cpay.company, "default_payable_account")
+
+		if status == "Cheque Deducted":
+			msg+=status+" - "+dc+", "
+			make_journal_entry_bulk_pay(cpay,status,notes_acc, cpay.bank,cpay.amount,party_type=None, party=None, cost_center=None,save=True, submit=True)
+						
+		if status == "Cheque Cancelled":
+			msg+=status+" - "+dc+", "
+			cancel_payment_entry_bulk_pay(cpay,status)
+	
+	return msg
+
+def make_journal_entry_bulk_pay(cpay,status,account1, account2, amount, party_type=None, party=None, cost_center=None, save=True, submit=False):
+
+	jv = frappe.new_doc("Journal Entry")
+	jv.posting_date = nowdate()
+	jv.company = cpay.company
+	jv.cheque_no = cpay.cheque_no
+	jv.cheque_date = cpay.cheque_date
+	jv.user_remark = cpay.remarks or "Cheque Transaction"
+	jv.multi_currency = 0
+	jv.set("accounts", [
+			{
+				"account": account1,
+				"party_type": party_type if (status == "Cheque Cancelled") else None,
+				"party": party if status == "Cheque Cancelled" else None,
+				"cost_center": cost_center,
+				"project": cpay.project,
+				"debit_in_account_currency": amount if amount > 0 else 0,
+				"credit_in_account_currency": abs(amount) if amount < 0 else 0
+			}, {
+				"account": account2,
+				"party_type": party_type if status == "Cheque Issued" else None,
+				"party": party if status == "Cheque Issued" else None,
+				"cost_center": cost_center,
+				"project": cpay.project,
+				"credit_in_account_currency": amount if amount > 0 else 0,
+				"debit_in_account_currency": abs(amount) if amount < 0 else 0
+			}
+		])
+	if save or submit:
+		jv.insert(ignore_permissions=True)
+
+		if submit:
+			jv.submit()
+
+	midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
+	curidx=1
+	if midx and midx[0][0] is not None:
+		curidx = cint(midx[0][0])+1
+
+	hist=frappe.new_doc("Payable Cheques Status")
+	hist.docstatus=1
+	hist.parent=cpay.name
+	hist.parentfield='status_history'
+	hist.parenttype='Payable Cheques'
+	hist.status=status
+	hist.idx=curidx
+	hist.transaction_date=nowdate()
+	hist.debit_account=account1
+	hist.credit_account=account2
+	hist.journal_entry=jv.name
+	hist.insert(ignore_permissions=True)
+	frappe.db.commit()
+	message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (jv.name, jv.name)
+	msgprint(_("Journal Entry {0} created").format(comma_and(message)))
+	#message = _("Journal Entry {0} created").format(comma_and(message))
+		
+	return message
+
+def cancel_payment_entry_bulk_pay(cpay,status):
+	if cpay.payment_entry: 
+		frappe.get_doc("Payment Entry", cpay.payment_entry).cancel()
+				
+	midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
+	curidx=1
+	if midx and midx[0][0] is not None:
+		curidx = cint(midx[0][0])+1
+
+	hist=frappe.new_doc("Payable Cheques Status")
+	hist.docstatus=1
+	hist.parent=cpay.name
+	hist.parentfield='status_history'
+	hist.parenttype='Payable Cheques'
+	hist.status=status
+	hist.idx=curidx
+	hist.transaction_date=nowdate()
+	hist.bank=cpay.bank
+	hist.insert(ignore_permissions=True)
+
+	message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (cpay.payment_entry, cpay.payment_entry)
+	#msgprint(_("Payment Entry {0} Cancelled").format(comma_and(message)))
+
+	return message
