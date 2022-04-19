@@ -34,19 +34,30 @@ frappe.listview_settings['Receivable Cheques'] = {
 		 {
 			
 			const docnames1 = listview.get_checked_items(true).map(docname => docname.toString());
-			//console.log(docnames1);
-			frappe.call({
-				method: "cheque_management.api.update_cheque_status",
-				freeze: true,
-				args: {
-					docnames:docnames1,
-					status:"Cheque Collected"
+			
+			frappe.prompt([
+				{'fieldname': 'posting_date', 'fieldtype': 'Date', 'label': 'Posting Date', 'reqd': 1}
+				],
+				function(values){
+					
+						frappe.call({
+							method: "cheque_management.api.update_cheque_status",
+							freeze: true,
+							args: {
+								docnames:docnames1,
+								status:"Cheque Collected",
+								posting_date: values.posting_date
+							},
+							callback: function(r) {
+								console.log(r.message);
+							}
+						});
+					
+						
 				},
-				callback: function(r) {
-					console.log(r.message);
-				}
-			});
-			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+				__("Transaction Posting Date"),
+				__("Confirm")
+			);
 			
 		 });
 
@@ -54,37 +65,61 @@ frappe.listview_settings['Receivable Cheques'] = {
 		 {
 			
 			const docnames2 = listview.get_checked_items(true).map(docname => docname.toString());
-			//console.log(docnames2);
-			frappe.call({
-				method: "cheque_management.api.update_cheque_status",
-				freeze: true,
-				args: {
-					docnames:docnames2,
-					status:"Cheque Deposited"
+			
+			frappe.prompt([
+				{'fieldname': 'posting_date', 'fieldtype': 'Date', 'label': 'Posting Date', 'reqd': 1}
+				],
+				function(values){
+					
+					frappe.call({
+						method: "cheque_management.api.update_cheque_status",
+						freeze: true,
+						args: {
+							docnames:docnames2,
+							status:"Cheque Deposited",
+							posting_date: values.posting_date
+						},
+						callback: function(r) {
+							console.log(r.message);
+						}
+					});
+					
+						
 				},
-				callback: function(r) {
-					console.log(r.message);
-				}
-			});
-			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+				__("Transaction Posting Date"),
+				__("Confirm")
+			);
 			
 		 });
 		 listview.page.actions.find('[data-label="Cheque Returned"]').click(function()
 		 {
 			
 			const docnames3 = listview.get_checked_items(true).map(docname => docname.toString());
-			frappe.call({
-				method: "cheque_management.api.update_cheque_status",
-				freeze: true,
-				args: {
-					docnames:docnames3,
-					status:"Cheque Returned"
+			
+			
+			frappe.prompt([
+				{'fieldname': 'posting_date', 'fieldtype': 'Date', 'label': 'Posting Date', 'reqd': 1}
+				],
+				function(values){
+					
+					frappe.call({
+						method: "cheque_management.api.update_cheque_status",
+						freeze: true,
+						args: {
+							docnames:docnames3,
+							status:"Cheque Returned",
+							posting_date: values.posting_date
+						},
+						callback: function(r) {
+							console.log(r.message);
+						}
+					});
+					
+						
 				},
-				callback: function(r) {
-					console.log(r.message);
-				}
-			});
-			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+				__("Transaction Posting Date"),
+				__("Confirm")
+			);
 			
 		 });
 
@@ -92,36 +127,62 @@ frappe.listview_settings['Receivable Cheques'] = {
 		 {
 			
 			const docnames4 = listview.get_checked_items(true).map(docname => docname.toString());
-			frappe.call({
-				method: "cheque_management.api.update_cheque_status",
-				freeze: true,
-				args: {
-					docnames:docnames4,
-					status:"Cheque Rejected"
+			
+
+			frappe.prompt([
+				{'fieldname': 'posting_date', 'fieldtype': 'Date', 'label': 'Posting Date', 'reqd': 1}
+				],
+				function(values){
+					
+					frappe.call({
+						method: "cheque_management.api.update_cheque_status",
+						freeze: true,
+						args: {
+							docnames:docnames4,
+							status:"Cheque Rejected",
+							posting_date: values.posting_date
+						},
+						callback: function(r) {
+							console.log(r.message);
+						}
+					});
+					
+						
 				},
-				callback: function(r) {
-					console.log(r.message);
-				}
-			});
-			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+				__("Transaction Posting Date"),
+				__("Confirm")
+			);
 			
 		 });
 		 listview.page.actions.find('[data-label="Cheque Cancelled"]').click(function()
 		 {
 			
 			const docnames5 = listview.get_checked_items(true).map(docname => docname.toString());
-			frappe.call({
-				method: "cheque_management.api.update_cheque_status",
-				freeze: true,
-				args: {
-					docnames:docnames5,
-					status:"Cheque Cancelled"
+			
+
+			frappe.prompt([
+				{'fieldname': 'posting_date', 'fieldtype': 'Date', 'label': 'Posting Date', 'reqd': 1}
+				],
+				function(values){
+					
+					frappe.call({
+						method: "cheque_management.api.update_cheque_status",
+						freeze: true,
+						args: {
+							docnames:docnames5,
+							status:"Cheque Cancelled",
+							posting_date: values.posting_date
+						},
+						callback: function(r) {
+							console.log(r.message);
+						}
+					});
+					
+						
 				},
-				callback: function(r) {
-					console.log(r.message);
-				}
-			});
-			//setTimeout(function(){  console.log(" ajax waite");  },3000);
+				__("Transaction Posting Date"),
+				__("Confirm")
+			);
 		 });
    }
  }

@@ -148,7 +148,7 @@ def make_journal_entry(self, account1, account2, amount, posting_date=None, part
 
 #---------  bulk update from list view pay rec--------------------------------
 @frappe.whitelist()
-def update_cheque_status(docnames,status):
+def update_cheque_status(docnames,status,posting_date):
 	import json
 	docnames=json.loads(docnames)
 	msg=''
@@ -162,33 +162,33 @@ def update_cheque_status(docnames,status):
 		
 		if status == "Cheque Deposited":
 			msg+=status+" - "+dc+", "
-			make_journal_entry_bulk(crec,status,uc_acc, notes_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False) 
+			make_journal_entry_bulk(crec,status,posting_date,uc_acc, notes_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False) 
 				
 		if status == "Cheque Collected":
 			msg+=status+" - "+dc+", "
 			party = frappe.db.get_value("Payment Entry", crec.payment_entry, "party")
 			party_type = frappe.db.get_value("Payment Entry", crec.payment_entry, "party_type")
-			make_journal_entry_bulk(crec,status,ct_acc, uc_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
-			make_journal_entry_bulk(crec,status,crec.deposit_bank, rec_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
+			make_journal_entry_bulk(crec,status,posting_date,ct_acc, uc_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
+			make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, rec_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
 				
 		if status == "Cheque Returned":
 			msg+=status+" - "+dc+", "
-			make_journal_entry_bulk(crec,status,notes_acc, uc_acc, crec.amount,party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
+			make_journal_entry_bulk(crec,status,posting_date,notes_acc, uc_acc, crec.amount,party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
 				
 		if status == "Cheque Rejected":
 			msg+=status+" - "+dc+", "
-			cancel_payment_entry(crec,status)
+			cancel_payment_entry(crec,status,posting_date)
 				
 		if status == "Cheque Cancelled":
 			msg+=status+" - "+dc+", "
-			cancel_payment_entry(crec,status)
+			cancel_payment_entry(crec,status,posting_date)
 
 
 	return msg
 
-def make_journal_entry_bulk(crec, status, account1, account2, amount, party_type=None, party=None, cost_center=None,save=True, submit=False, last=False):
+def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amount, party_type=None, party=None, cost_center=None,save=True, submit=False, last=False):
 	jv = frappe.new_doc("Journal Entry")
-	jv.posting_date = nowdate()
+	jv.posting_date = posting_date
 	jv.company = crec.company
 	jv.cheque_no = crec.cheque_no
 	jv.cheque_date = crec.cheque_date
@@ -243,7 +243,7 @@ def make_journal_entry_bulk(crec, status, account1, account2, amount, party_type
 	hist.parenttype='Receivable Cheques'
 	hist.status=status
 	hist.idx=curidx
-	hist.transaction_date=nowdate()
+	hist.transaction_date=posting_date
 	hist.bank=crec.deposit_bank
 	hist.debit_account=account1
 	hist.credit_account=account2
@@ -256,7 +256,7 @@ def make_journal_entry_bulk(crec, status, account1, account2, amount, party_type
 
 	return message
 
-def cancel_payment_entry(crec, status):
+def cancel_payment_entry(crec, status,posting_date):
 	if crec.payment_entry: 
 		frappe.get_doc("Payment Entry", crec.payment_entry).cancel()
 
@@ -279,7 +279,7 @@ def cancel_payment_entry(crec, status):
 	hist.parenttype='Receivable Cheques'
 	hist.status=status
 	hist.idx=curidx
-	hist.transaction_date=nowdate()
+	hist.transaction_date=posting_date
 	hist.bank=crec.deposit_bank
 	hist.insert(ignore_permissions=True)
 	message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (crec.payment_entry, crec.payment_entry)
@@ -290,7 +290,7 @@ def cancel_payment_entry(crec, status):
 
 #------------ bulk update list view pay paid ------------
 @frappe.whitelist()
-def update_cheque_status_pay(docnames,status):
+def update_cheque_status_pay(docnames,status,posting_date):
 	import json
 	docnames=json.loads(docnames)
 	msg=''
@@ -301,18 +301,18 @@ def update_cheque_status_pay(docnames,status):
 
 		if status == "Cheque Deducted":
 			msg+=status+" - "+dc+", "
-			make_journal_entry_bulk_pay(cpay,status,notes_acc, cpay.bank,cpay.amount,party_type=None, party=None, cost_center=None,save=True, submit=True)
+			make_journal_entry_bulk_pay(cpay,status,posting_date,notes_acc, cpay.bank,cpay.amount,party_type=None, party=None, cost_center=None,save=True, submit=True)
 						
 		if status == "Cheque Cancelled":
 			msg+=status+" - "+dc+", "
-			cancel_payment_entry_bulk_pay(cpay,status)
+			cancel_payment_entry_bulk_pay(cpay,status,posting_date)
 	
 	return msg
 
-def make_journal_entry_bulk_pay(cpay,status,account1, account2, amount, party_type=None, party=None, cost_center=None, save=True, submit=False):
+def make_journal_entry_bulk_pay(cpay,status,posting_date,account1, account2, amount, party_type=None, party=None, cost_center=None, save=True, submit=False):
 
 	jv = frappe.new_doc("Journal Entry")
-	jv.posting_date = nowdate()
+	jv.posting_date = posting_date
 	jv.company = cpay.company
 	jv.cheque_no = cpay.cheque_no
 	jv.cheque_date = cpay.cheque_date
@@ -355,7 +355,7 @@ def make_journal_entry_bulk_pay(cpay,status,account1, account2, amount, party_ty
 	hist.parenttype='Payable Cheques'
 	hist.status=status
 	hist.idx=curidx
-	hist.transaction_date=nowdate()
+	hist.transaction_date=posting_date
 	hist.debit_account=account1
 	hist.credit_account=account2
 	hist.journal_entry=jv.name
@@ -367,7 +367,7 @@ def make_journal_entry_bulk_pay(cpay,status,account1, account2, amount, party_ty
 		
 	return message
 
-def cancel_payment_entry_bulk_pay(cpay,status):
+def cancel_payment_entry_bulk_pay(cpay,status,posting_date):
 	if cpay.payment_entry: 
 		frappe.get_doc("Payment Entry", cpay.payment_entry).cancel()
 				
@@ -383,7 +383,7 @@ def cancel_payment_entry_bulk_pay(cpay,status):
 	hist.parenttype='Payable Cheques'
 	hist.status=status
 	hist.idx=curidx
-	hist.transaction_date=nowdate()
+	hist.transaction_date=posting_date
 	hist.bank=cpay.bank
 	hist.insert(ignore_permissions=True)
 
