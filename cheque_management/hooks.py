@@ -133,6 +133,8 @@ fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
 		"Company-cheques_under_collection_account",
 		"Company-payable_notes_account",
 		"Company-receivable_notes_account",
+        "Company-cross_transaction_account",
+        "Receivable Cheques-reference_journal",
         "Payment Entry-cheque_paid_to",
         "Payment Entry-cheque_paid_from"
 	]]]},
