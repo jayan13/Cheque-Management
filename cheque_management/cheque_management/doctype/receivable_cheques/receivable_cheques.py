@@ -93,9 +93,14 @@ class ReceivableCheques(Document):
 		return cheque_status
 
 	def cancel_payment_entry(self):
+
+		if self.reference_journal:
+			frappe.get_doc("Journal Entry", self.reference_journal).cancel()
+
 		if self.payment_entry: 
 			frappe.get_doc("Payment Entry", self.payment_entry).cancel()
 
+		
 		self.append("status_history", {
 								"status": self.cheque_status,
 								"transaction_date": nowdate(),
