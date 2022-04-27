@@ -114,9 +114,13 @@ def pe_on_cancel(self, method):
 	return
 
 def make_journal_entry(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None):
+
+		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
 		jv = frappe.new_doc("Journal Entry")
 		jv.posting_date = posting_date or nowdate()
 		jv.due_date = posting_date or nowdate()
+		if naming_series:
+			jv.naming_series=naming_series
 		jv.company = self.company
 		jv.cheque_no = self.reference_no
 		jv.cheque_date = self.reference_date
@@ -187,8 +191,11 @@ def update_cheque_status(docnames,status,posting_date):
 	return msg
 
 def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amount, party_type=None, party=None, cost_center=None,save=True, submit=False, last=False):
+	naming_series = frappe.db.get_value("Company", crec.company, "journal_entry_naming_series")
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date
+	if naming_series:
+		jv.naming_series=naming_series
 	jv.company = crec.company
 	jv.cheque_no = crec.cheque_no
 	jv.cheque_date = crec.cheque_date
@@ -311,8 +318,11 @@ def update_cheque_status_pay(docnames,status,posting_date):
 
 def make_journal_entry_bulk_pay(cpay,status,posting_date,account1, account2, amount, party_type=None, party=None, cost_center=None, save=True, submit=False):
 
+	naming_series = frappe.db.get_value("Company", cpay.company, "journal_entry_naming_series")
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date
+	if naming_series:
+		jv.naming_series=naming_series
 	jv.company = cpay.company
 	jv.cheque_no = cpay.cheque_no
 	jv.cheque_date = cpay.cheque_date
@@ -391,3 +401,19 @@ def cancel_payment_entry_bulk_pay(cpay,status,posting_date):
 	#msgprint(_("Payment Entry {0} Cancelled").format(comma_and(message)))
 
 	return message
+
+@frappe.whitelist()
+def get_journal_naming_series():
+	nm=frappe.db.get_list('Property Setter',
+    filters={
+        'doc_type': 'Journal Entry',
+		'field_name': 'naming_series'
+    },
+    fields=['value'],
+    pluck='value'
+	)
+	res=''
+	if nm[1]:
+		res=nm[1].splitlines()
+
+	return res

@@ -136,7 +136,8 @@ fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
         "Company-cross_transaction_account",
         "Receivable Cheques-reference_journal",
         "Payment Entry-cheque_paid_to",
-        "Payment Entry-cheque_paid_from"
+        "Payment Entry-cheque_paid_from",
+        "Company-journal_entry_naming_series"
 	]]]},
     {"dt": "Workflow", "filters": [["name", "like", 
         "%Cheques Cycle"
@@ -146,5 +147,6 @@ fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
     ]]},
     {"dt": "Workflow Action", "filters": [["name", "like", 
         "Cheque%"
-    ]]}
+    ]]},
+    { "doctype": "Client Script", "filters": [ ["name", "in", ( "Company-Form", )] ] },
 ]
