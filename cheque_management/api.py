@@ -735,16 +735,9 @@ def cancel_payment_entry_bulk_pay_jv(cpay,status,posting_date):
 
 @frappe.whitelist()
 def get_journal_naming_series():
-	nm=frappe.db.get_list('Property Setter',
-    filters={
-        'doc_type': 'Journal Entry',
-		'field_name': 'naming_series'
-    },
-    fields=['value'],
-    pluck='value'
-	)
+	nm=frappe.db.get_list('Property Setter',filters={'doc_type': 'Journal Entry','field_name': 'naming_series'},fields=['value'],pluck='value')
 	res=''
-	if nm[1]:
-		res=nm[1].splitlines()
+	if nm:
+		res=nm[0].splitlines()
 
 	return res
