@@ -90,9 +90,12 @@ doc_events = {
         "on_submit": "cheque_management.api.pe_on_submit",
         "before_submit": "cheque_management.api.pe_before_submit",
         "on_cancel": "cheque_management.api.pe_on_cancel"
-    }
+    },
+    "Journal Entry": {
+      "on_submit": "cheque_management.api.jv_on_submit",
+      "before_submit": "cheque_management.api.jv_before_submit",     
+    },
 }
-
 # Scheduled Tasks
 # ---------------
 
@@ -137,7 +140,10 @@ fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
         "Receivable Cheques-reference_journal",
         "Payment Entry-cheque_paid_to",
         "Payment Entry-cheque_paid_from",
-        "Company-journal_entry_naming_series"
+        "Company-journal_entry_naming_series",
+        "Journal Entry-cheque_paid_acc",
+        "Journal Entry-cheque_pay_type",
+        "Journal Entry-cheque_amount"
 	]]]},
     {"dt": "Workflow", "filters": [["name", "like", 
         "%Cheques Cycle"

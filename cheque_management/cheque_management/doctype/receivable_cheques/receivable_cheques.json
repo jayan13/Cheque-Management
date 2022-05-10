@@ -1,187 +1,201 @@
 {
-    "allow_copy": 1,
-    "creation": "2017-05-10 22:35:05.915635",
-    "doctype": "DocType",
-    "document_type": "Document",
-    "editable_grid": 1,
-    "engine": "InnoDB",
-    "field_order": [
-     "cheque_no",
-     "cheque_date",
-     "currency",
-     "exchange_rate",
-     "amount",
-     "column_break_00",
-     "deposit_bank",
-     "customer",
-     "company",
-     "project",
-     "remarks",
-     "payment_entry",
-     "section_break_00",
-     "status_history",
-     "cheque_status",
-     "amended_from",
-     "bank_changed"
-    ],
-    "fields": [
-     {
-      "fieldname": "cheque_no",
-      "fieldtype": "Data",
-      "in_list_view": 1,
-      "label": "Cheque No",
-      "reqd": 1
-     },
-     {
-      "fieldname": "cheque_date",
-      "fieldtype": "Date",
-      "in_list_view": 1,
-      "label": "Cheque Date",
-      "reqd": 1
-     },
-     {
-      "fieldname": "currency",
-      "fieldtype": "Link",
-      "label": "Currency",
-      "options": "Currency",
-      "reqd": 1
-     },
-     {
-      "fieldname": "exchange_rate",
-      "fieldtype": "Currency",
-      "label": "Exchange Rate",
-      "reqd": 1
-     },
-     {
-      "fieldname": "amount",
-      "fieldtype": "Currency",
-      "label": "Amount",
-      "reqd": 1
-     },
-     {
-      "fieldname": "column_break_00",
-      "fieldtype": "Column Break"
-     },
-     {
-      "allow_on_submit": 1,
-      "fieldname": "deposit_bank",
-      "fieldtype": "Link",
-      "label": "Deposit Bank",
-      "options": "Account"
-     },
-     {
-      "fieldname": "customer",
-      "fieldtype": "Link",
-      "label": "Customer",
-      "options": "Customer",
-      "reqd": 1
-     },
-     {
-      "fieldname": "company",
-      "fieldtype": "Link",
-      "label": "Company",
-      "options": "Company",
-      "reqd": 1
-     },
-     {
-      "fieldname": "project",
-      "fieldtype": "Link",
-      "label": "Project",
-      "options": "Project"
-     },
-     {
-      "fieldname": "remarks",
-      "fieldtype": "Small Text",
-      "label": "Remarks",
-      "read_only": 1
-     },
-     {
-      "fieldname": "payment_entry",
-      "fieldtype": "Data",
-      "label": "Payment Entry",
-      "read_only": 1
-     },
-     {
-      "fieldname": "section_break_00",
-      "fieldtype": "Section Break"
-     },
-     {
-      "allow_on_submit": 1,
-      "fieldname": "status_history",
-      "fieldtype": "Table",
-      "label": "Cheque Status",
-      "options": "Receivable Cheques Status",
-      "read_only": 1
-     },
-     {
-      "allow_on_submit": 1,
-      "fieldname": "cheque_status",
-      "fieldtype": "Data",
-      "hidden": 1,
-      "label": "Cheque Status"
-     },
-     {
-      "fieldname": "amended_from",
-      "fieldtype": "Link",
-      "label": "Amended From",
-      "no_copy": 1,
-      "options": "Receivable Cheques",
-      "print_hide": 1,
-      "read_only": 1
-     },
-     {
-      "allow_on_submit": 1,
-      "default": "0",
-      "fieldname": "bank_changed",
-      "fieldtype": "Check",
-      "hidden": 1,
-      "label": "Bank Changed"
-     }
-    ],
-    "in_create": 1,
-    "is_submittable": 1,
-    "modified": "2021-07-05 12:06:23.173273",
-    "modified_by": "mahmoudkelany@frontlinesolutions.cloud",
-    "module": "Cheque Management",
-    "name": "Receivable Cheques",
-    "owner": "Administrator",
-    "permissions": [
-     {
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "submit": 1,
-      "write": 1
-     },
-     {
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Accounts Manager",
-      "share": 1,
-      "submit": 1,
-      "write": 1
-     },
-     {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "All",
-      "share": 1,
-      "submit": 1,
-      "write": 1
-     }
-    ],
-    "sort_field": "modified",
-    "sort_order": "DESC"
+ "actions": [],
+ "allow_copy": 1,
+ "creation": "2017-05-10 22:35:05.915635",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cheque_no",
+  "cheque_date",
+  "currency",
+  "exchange_rate",
+  "amount",
+  "column_break_00",
+  "deposit_bank",
+  "customer",
+  "customer_group",
+  "company",
+  "project",
+  "remarks",
+  "payment_entry",
+  "journal_entry",
+  "section_break_00",
+  "status_history",
+  "cheque_status",
+  "amended_from",
+  "bank_changed"
+ ],
+ "fields": [
+  {
+   "fieldname": "cheque_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cheque No",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cheque_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Cheque Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "exchange_rate",
+   "fieldtype": "Currency",
+   "label": "Exchange Rate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "deposit_bank",
+   "fieldtype": "Link",
+   "label": "Deposit Bank",
+   "options": "Account"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_entry",
+   "fieldtype": "Data",
+   "label": "Payment Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_00",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "status_history",
+   "fieldtype": "Table",
+   "label": "Cheque Status",
+   "options": "Receivable Cheques Status",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "cheque_status",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Cheque Status"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Receivable Cheques",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "bank_changed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Bank Changed"
+  },
+  {
+   "fieldname": "customer_group",
+   "fieldtype": "Link",
+   "label": "Customer Group",
+   "options": "Customer Group"
+  },
+  {
+   "fieldname": "journal_entry",
+   "fieldtype": "Data",
+   "label": "Journal Entry"
+  }
+ ],
+ "in_create": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2022-05-10 08:43:18.812295",
+ "modified_by": "Administrator",
+ "module": "Cheque Management",
+ "name": "Receivable Cheques",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
 }

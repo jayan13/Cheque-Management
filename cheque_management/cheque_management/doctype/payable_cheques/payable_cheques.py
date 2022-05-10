@@ -69,24 +69,30 @@ class PayableCheques(Document):
 	def cancel_payment_entry(self):
 		if self.payment_entry: 
 			frappe.get_doc("Payment Entry", self.payment_entry).cancel()
+			message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (self.payment_entry, self.payment_entry)
+		if self.journal_entry:
+			frappe.get_doc("Journal Entry", self.journal_entry).cancel()
+			message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (self.journal_entry, self.journal_entry)
 				
 		self.append("status_history", {
 								"status": self.cheque_status,
 								"transaction_date": nowdate(),
 								"bank": self.bank
 							})
-		self.submit()
-		message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (self.payment_entry, self.payment_entry)
+		self.submit()		
 		msgprint(_("Payment Entry {0} Cancelled").format(comma_and(message)))
 
 			
 	def make_journal_entry(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None, 
 							save=True, submit=False):
+		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")						
 		jv = frappe.new_doc("Journal Entry")
 		jv.posting_date = posting_date or nowdate()
 		jv.company = self.company
 		jv.cheque_no = self.cheque_no
 		jv.cheque_date = self.cheque_date
+		if naming_series:
+			jv.naming_series=naming_series
 		jv.user_remark = self.remarks or "Cheque Transaction"
 		jv.multi_currency = 0
 		jv.set("accounts", [
