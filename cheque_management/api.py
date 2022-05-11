@@ -499,17 +499,29 @@ def make_journal_entry_bulk_jv(crec, status,posting_date, account1, journal_entr
 				}
 			account.append(accd)
 		else:
-			accd={
-			"account": acc.account,
-			"party_type": acc.party_type,
-			"party": acc.party,
-			"cost_center": cost_center,
-			"project": acc.project,
-			"credit_in_account_currency": acc.credit_in_account_currency,
-			"debit_in_account_currency": acc.debit_in_account_currency,
-			"reference_type": "Journal Entry" if last == True else None,
-			"reference_name": crec.reference_journal if last == True else None
-			}
+
+			if acc.credit_in_account_currency > 0:
+				accd={
+				"account": acc.account,
+				"party_type": acc.party_type,
+				"party": acc.party,
+				"cost_center": cost_center,
+				"project": acc.project,
+				"credit_in_account_currency": acc.credit_in_account_currency,
+				"debit_in_account_currency": acc.debit_in_account_currency,
+				"reference_type": "Journal Entry" if last == True else None,
+				"reference_name": crec.reference_journal if last == True else None
+				}
+			else:
+				accd={
+				"account": acc.account,
+				"party_type": acc.party_type,
+				"party": acc.party,
+				"cost_center": cost_center,
+				"project": acc.project,
+				"credit_in_account_currency": acc.credit_in_account_currency,
+				"debit_in_account_currency": acc.debit_in_account_currency,
+				}
 			account.append(accd)
 			if acc.party:
 				account2=acc.account
