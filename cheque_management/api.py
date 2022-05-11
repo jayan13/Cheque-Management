@@ -117,6 +117,7 @@ def pe_on_cancel(self, method):
 def make_journal_entry(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None):
 
 		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
+		cost_center = frappe.db.get_value("Company", self.company, "cost_center")
 		jv = frappe.new_doc("Journal Entry")
 		jv.posting_date = posting_date or nowdate()
 		jv.due_date = posting_date or nowdate()
@@ -132,7 +133,7 @@ def make_journal_entry(self, account1, account2, amount, posting_date=None, part
 				"account": account1,
 				"party_type": self.party_type,
 				"party": self.party,
-				"cost_center": None,
+				"cost_center": cost_center,
 				"project": self.project,
 				"debit_in_account_currency": amount if amount > 0 else 0,
 				"credit_in_account_currency": abs(amount) if amount < 0 else 0
@@ -140,12 +141,15 @@ def make_journal_entry(self, account1, account2, amount, posting_date=None, part
 				"account": account2,
 				"party_type": None,
 				"party": None,
-				"cost_center": None,
+				"cost_center": cost_center,
 				"project": self.project,
 				"credit_in_account_currency": amount if amount > 0 else 0,
 				"debit_in_account_currency": abs(amount) if amount < 0 else 0
 			}
 		])
+		#import json				
+		#frappe.throw(json.dumps(account))
+		#frappe.throw(_("cost center {0}").format(cost_center))
 		jv.insert(ignore_permissions=True)
 		jv.submit()
 		frappe.db.commit()
@@ -276,6 +280,7 @@ def jv_on_submit(self, method):
 	
 def make_journal_entry_jv(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None):
 	naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
+	cost_center = frappe.db.get_value("Company", self.company, "cost_center")
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date or nowdate()
 	jv.due_date = posting_date or nowdate()
@@ -301,7 +306,7 @@ def make_journal_entry_jv(self, account1, account2, amount, posting_date=None, p
 				"account": account2,
 				"party_type": None,
 				"party": None,
-				"cost_center": None,
+				"cost_center": cost_center,
 				"project": acc.project,
 				"credit_in_account_currency": acamount if acamount > 0 else 0,
 				"debit_in_account_currency": abs(acamount) if acamount < 0 else 0
@@ -313,7 +318,7 @@ def make_journal_entry_jv(self, account1, account2, amount, posting_date=None, p
 				"account": account1,
 				"party_type": acc.party_type,
 				"party": acc.party,
-				"cost_center": None,
+				"cost_center": cost_center,
 				"project": acc.project,
 				"debit_in_account_currency": abs(acamount) if acamount < 0 else 0,
 				"credit_in_account_currency": acamount if acamount > 0 else 0,
@@ -326,7 +331,7 @@ def make_journal_entry_jv(self, account1, account2, amount, posting_date=None, p
 				"account": account1,
 				"party_type": acc.party_type,
 				"party": acc.party,
-				"cost_center": None,
+				"cost_center": cost_center,
 				"project": acc.project,
 				"debit_in_account_currency": acamount if acamount > 0 else 0,
 				"credit_in_account_currency": abs(acamount) if acamount < 0 else 0,
@@ -404,6 +409,7 @@ def update_cheque_status(docnames,status,posting_date):
 
 def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amount, party_type=None, party=None, cost_center=None,save=True, submit=False, last=False):
 	naming_series = frappe.db.get_value("Company", crec.company, "journal_entry_naming_series")
+	cost_center = frappe.db.get_value("Company", crec.company, "cost_center")
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date
 	if naming_series:
@@ -468,6 +474,7 @@ def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amoun
 def make_journal_entry_bulk_jv(crec, status,posting_date, account1, journal_entry, amount, cost_center=None,save=True, submit=False, last=False):
 	journalentry=frappe.get_doc("Journal Entry", journal_entry)	
 	naming_series = frappe.db.get_value("Company", crec.company, "journal_entry_naming_series")
+	cost_center = frappe.db.get_value("Company", crec.company, "cost_center")
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date
 	if naming_series:
@@ -638,6 +645,7 @@ def update_cheque_status_pay(docnames,status,posting_date):
 def make_journal_entry_bulk_pay(cpay,status,posting_date,account1, account2, amount, party_type=None, party=None, cost_center=None, save=True, submit=False):
 
 	naming_series = frappe.db.get_value("Company", cpay.company, "journal_entry_naming_series")
+	cost_center = frappe.db.get_value("Company", cpay.company, "cost_center")
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date
 	if naming_series:
