@@ -294,50 +294,39 @@ def make_journal_entry_jv(self, account1, account2, amount, posting_date=None, p
 	account=[]
 	accd=''
 	i=0
+	accu=frappe.db.get_list("Journal Entry Account",
+		fields=['account', 'party_type','party','cost_center','project','sum(debit_in_account_currency) as debit','sum(credit_in_account_currency) as credit'],
+		filters={'party': ['!=', ''],'parent':self.name},
+		group_by='party')
 	#credit_in_account_currency
 	for acc in self.accounts:
-		if acc.debit_in_account_currency != 0:
-			acamount=acc.debit_in_account_currency
-		else:	
-			acamount=acc.credit_in_account_currency
-
-		if (acc.debit_in_account_currency == amount or acc.credit_in_account_currency == amount) and i==0:
+		if i==0:
 			accd={
 				"account": account2,
 				"party_type": None,
 				"party": None,
 				"cost_center": cost_center,
 				"project": acc.project,
-				"credit_in_account_currency": acamount if acamount > 0 else 0,
-				"debit_in_account_currency": abs(acamount) if acamount < 0 else 0
+				"credit_in_account_currency": acc.debit_in_account_currency,
+				"debit_in_account_currency": 0
 				}
 			account.append(accd)
-		else:
-			if acc.debit_in_account_currency:
-				accd={
-				"account": account1,
-				"party_type": acc.party_type,
-				"party": acc.party,
-				"cost_center": cost_center,
-				"project": acc.project,
-				"debit_in_account_currency": abs(acamount) if acamount < 0 else 0,
-				"credit_in_account_currency": acamount if acamount > 0 else 0,
-				#"reference_type": "Journal Entry",
-				#"reference_name": self.name
-				}
-				account.append(accd)
-			else:
-				accd={
-				"account": account1,
-				"party_type": acc.party_type,
-				"party": acc.party,
-				"cost_center": cost_center,
-				"project": acc.project,
-				"debit_in_account_currency": acamount if acamount > 0 else 0,
-				"credit_in_account_currency": abs(acamount) if acamount < 0 else 0,
-				}
-				account.append(accd)
+			break		
 		i+=1
+
+	for acc2 in accu:
+		dbit=acc2.credit-acc2.debit
+		if dbit > 0:
+			accd={
+				"account": account1,
+				"party_type": acc2.party_type,
+				"party": acc2.party,
+				"cost_center": cost_center,
+				"project": acc2.project,
+				"debit_in_account_currency": dbit,
+				"credit_in_account_currency": 0,
+				}
+			account.append(accd)
 	#import json				
 	#frappe.throw(json.dumps(account))
 	jv.set("accounts", account)
@@ -472,7 +461,7 @@ def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amoun
 
 	return message
 def make_journal_entry_bulk_jv(crec, status,posting_date, account1, journal_entry, amount, cost_center=None,save=True, submit=False, last=False):
-	journalentry=frappe.get_doc("Journal Entry", journal_entry)	
+	journalentry=frappe.get_doc("Journal Entry", crec.reference_journal)	
 	naming_series = frappe.db.get_value("Company", crec.company, "journal_entry_naming_series")
 	cost_center = frappe.db.get_value("Company", crec.company, "cost_center")
 	jv = frappe.new_doc("Journal Entry")
@@ -501,37 +490,27 @@ def make_journal_entry_bulk_jv(crec, status,posting_date, account1, journal_entr
 				"party":None,
 				"cost_center": cost_center,
 				"project": acc.project,
-				"debit_in_account_currency": acamount if acamount > 0 else 0,
-				"credit_in_account_currency": abs(acamount) if acamount < 0 else 0
+				"debit_in_account_currency": acamount,
+				"credit_in_account_currency": 0
 				}
 			account.append(accd)
 		else:
 
-			if acc.credit_in_account_currency > 0:
-				accd={
+			accd={
 				"account": acc.account,
 				"party_type": acc.party_type,
 				"party": acc.party,
 				"cost_center": cost_center,
 				"project": acc.project,
-				"credit_in_account_currency": acc.credit_in_account_currency,
-				"debit_in_account_currency": acc.debit_in_account_currency,
+				"credit_in_account_currency": acamount,
+				"debit_in_account_currency": 0,
 				"reference_type": "Journal Entry" if last == True else None,
 				"reference_name": crec.reference_journal if last == True else None
 				}
-			else:
-				accd={
-				"account": acc.account,
-				"party_type": acc.party_type,
-				"party": acc.party,
-				"cost_center": cost_center,
-				"project": acc.project,
-				"credit_in_account_currency": acc.credit_in_account_currency,
-				"debit_in_account_currency": acc.debit_in_account_currency,
-				}
+
 			account.append(accd)
 			if acc.party:
-				account2=acc.account
+					account2=acc.account
 		i+=1
 	jv.set("accounts", account)
 	if save or submit:

@@ -212,7 +212,7 @@ class ReceivableCheques(Document):
 	
 	def make_journal_entry_jv(self, account1, journal_entry, amount, posting_date=None, party_type=None, party=None, cost_center=None, 
 							save=True, submit=False, last=False):
-		journalentry=frappe.get_doc("Journal Entry", journal_entry)
+		journalentry=frappe.get_doc("Journal Entry", self.reference_journal)
 		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
 		cost_center = frappe.db.get_value("Company", self.company, "cost_center")
 		jv = frappe.new_doc("Journal Entry")
@@ -234,6 +234,7 @@ class ReceivableCheques(Document):
 			else:	
 				acamount=acc.credit_in_account_currency
 
+			
 			if i==0:
 				accd={				
 					"account": account1,
@@ -241,36 +242,26 @@ class ReceivableCheques(Document):
 					"party":None,
 					"cost_center": cost_center,
 					"project": acc.project,
-					"debit_in_account_currency": acamount if acamount > 0 else 0,
-					"credit_in_account_currency": abs(acamount) if acamount < 0 else 0
+					"debit_in_account_currency": acamount,
+					"credit_in_account_currency": 0
 					}
 				account.append(accd)
 			else:
-				if acc.credit_in_account_currency > 0:
-					accd={
+
+				accd={
 					"account": acc.account,
 					"party_type": acc.party_type,
 					"party": acc.party,
 					"cost_center": cost_center,
 					"project": acc.project,
-					"credit_in_account_currency": acc.credit_in_account_currency,
-					"debit_in_account_currency": acc.debit_in_account_currency,
+					"credit_in_account_currency": acamount,
+					"debit_in_account_currency": 0,
 					"reference_type": "Journal Entry" if last == True else None,
 					"reference_name": self.reference_journal if last == True else None
 					}
-				else:
-					accd={
-					"account": acc.account,
-					"party_type": acc.party_type,
-					"party": acc.party,
-					"cost_center": cost_center,
-					"project": acc.project,
-					"credit_in_account_currency": acc.credit_in_account_currency,
-					"debit_in_account_currency": acc.debit_in_account_currency,					
-					}
 				account.append(accd)
 				if acc.party:
-					account2=acc.account
+					account2=acc.account	
 			i+=1
 		jv.set("accounts", account)
 		#import json				
