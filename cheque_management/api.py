@@ -8,6 +8,8 @@ from frappe.utils import flt, cstr, nowdate, comma_and, cint
 from frappe import throw, msgprint, _
 
 def pe_before_submit(self, method):
+	if self.reference_date <= nowdate():
+		return
 	if self.mode_of_payment == "Cheque" and self.payment_type == "Receive":
 		notes_acc = frappe.db.get_value("Company", self.company, "receivable_notes_account")
 		if not notes_acc:
@@ -24,6 +26,8 @@ def pe_before_submit(self, method):
 		
 
 def pe_on_submit(self, method):
+	if self.reference_date <= nowdate():
+		return
 	hh_currency = erpnext.get_company_currency(self.company)
 	if self.mode_of_payment == "Cheque" and self.paid_from_account_currency != hh_currency:
 		frappe.throw(_("You cannot use foreign currencies with Mode of Payment   Cheque"))
@@ -157,6 +161,8 @@ def make_journal_entry(self, account1, account2, amount, posting_date=None, part
 #----------- journal entry payment -------------------------------------------
 
 def jv_before_submit(self, method):
+	if self.cheque_date <= nowdate():
+		return
 	if self.mode_of_payment=='Cheque':
 		for acc in self.accounts:
 			account_type=frappe.db.get_value('Account', acc.account, 'account_type')
@@ -181,6 +187,8 @@ def jv_before_submit(self, method):
 			
 		
 def jv_on_submit(self, method):
+	if self.cheque_date <= nowdate():
+		return
 	if self.mode_of_payment=='Cheque':
 		hh_currency = erpnext.get_company_currency(self.company)
 		recnotes_acc = frappe.db.get_value("Company", self.company, "receivable_notes_account")
