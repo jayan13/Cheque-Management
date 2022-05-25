@@ -38,7 +38,7 @@ class ReceivableCheques(Document):
 			frappe.throw(_("Receivable Notes Account not defined in the company setup page"))
 		elif len(notes_acc) < 4:
 			frappe.throw(_("Receivable Notes Account not defined in the company setup page"))
-			
+
 		party_type=''
 		party=''
 
@@ -97,7 +97,10 @@ class ReceivableCheques(Document):
 
 		
 
-		if self.payment_entry: 
+		if self.payment_entry:
+			remarks = frappe.db.get_value('Payment Entry', self.payment_entry, 'remarks')
+			remarks=remarks+'<br>'+nowdate()+' - '+self.cheque_status
+			frappe.db.set_value('Payment Entry', self.payment_entry,'remarks', remarks) 
 			frappe.get_doc("Payment Entry", self.payment_entry).cancel()
 
 		
@@ -116,6 +119,9 @@ class ReceivableCheques(Document):
 	def cancel_payment_entry_jv(self):
 		
 		if self.journal_entry:
+			remark = frappe.db.get_value('Journal Entry', self.journal_entry, 'remark')
+			remark=remark+'<br>'+nowdate()+' - '+self.cheque_status
+			frappe.db.set_value('Journal Entry', self.journal_entry,'remark', remark)
 			frappe.get_doc("Journal Entry", self.journal_entry).cancel()
 
 		self.append("status_history", {

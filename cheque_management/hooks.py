@@ -88,11 +88,11 @@ app_license = "MIT"
 doc_events = {
     "Payment Entry": {
         "on_submit": "cheque_management.api.pe_on_submit",
-        "before_submit": "cheque_management.api.pe_before_submit",
+        "before_submit": "cheque_management.api.pe_before_submit",        
     },
     "Journal Entry": {
       "on_submit": "cheque_management.api.jv_on_submit",
-      "before_submit": "cheque_management.api.jv_before_submit",     
+      "before_submit": "cheque_management.api.jv_before_submit",           
     },
 }
 # Scheduled Tasks

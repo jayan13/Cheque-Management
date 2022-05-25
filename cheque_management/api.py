@@ -104,14 +104,6 @@ def pe_on_submit(self, method):
 		message = """<a href="#Form/Payable Cheques/%s" target="_blank">%s</a>""" % (pc.name, pc.name)
 		msgprint(_("Payable Cheque {0} created").format(comma_and(message)))
 
-def pe_on_cancel(self, method):
-	if frappe.db.sql("""select name from `tabReceivable Cheques` where payment_entry=%s and docstatus<>2  
-				and not cheque_status in ("Cheque Cancelled","Cheque Rejected")""" , (self.name)):
-		frappe.throw(_("Cannot Cancel this Payment Entry as it is Linked with Receivable Cheque"))
-	if frappe.db.sql("""select name from `tabPayable Cheques` where payment_entry=%s and docstatus<>2  
-				and cheque_status<>'Cheque Cancelled'""" , (self.name)):
-		frappe.throw(_("Cannot Cancel this Payment Entry as it is Linked with Payable Cheque"))
-	return
 
 
 #----------- journal entry payment -------------------------------------------
@@ -250,7 +242,7 @@ def update_cheque_status(docnames,status,posting_date):
 
 		party_type=''
 		party=''
-		
+
 		if crec.payment_entry:
 			#rec_acc = frappe.db.get_value("Payment Entry", crec.payment_entry, "paid_from")
 			
@@ -359,7 +351,10 @@ def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amoun
 
 def cancel_payment_entry(crec, status,posting_date):
 	
-	if crec.payment_entry: 
+	if crec.payment_entry:
+		remarks = frappe.db.get_value('Payment Entry', crec.payment_entry, 'remarks')
+		remarks=remarks+'<br>'+nowdate()+' - '+status
+		frappe.db.set_value('Payment Entry', crec.payment_entry,'remarks', remarks)  
 		frappe.get_doc("Payment Entry", crec.payment_entry).cancel()
 	
 	midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
@@ -385,6 +380,9 @@ def cancel_payment_entry(crec, status,posting_date):
 def cancel_payment_entry_jv(crec, status,posting_date):
 	
 	if crec.journal_entry:
+		remark = frappe.db.get_value('Journal Entry', crec.journal_entry, 'remark')
+		remark=remark+'<br>'+nowdate()+' - '+status
+		frappe.db.set_value('Journal Entry', crec.journal_entry,'remark', remark)	
 		frappe.get_doc("Journal Entry", crec.journal_entry).cancel()
 	
 	midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
