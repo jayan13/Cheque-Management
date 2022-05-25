@@ -38,11 +38,7 @@ def pe_on_submit(self, method):
 		if not notes_acc:
 			frappe.throw(_("Receivable Notes Account not defined in the company setup page"))
 		self.db_set("paid_to", notes_acc)
-		crs_acc = frappe.db.get_value("Company", self.company, "cross_transaction_account")
-		if not crs_acc:
-			frappe.throw(_("Cross Transaction Account not defined in the company setup page"))
-
-		journal = make_journal_entry(self, self.paid_from, crs_acc, self.base_received_amount, self.posting_date)
+		
 		rc = frappe.new_doc("Receivable Cheques")
 		rc.cheque_no = self.reference_no 
 		rc.cheque_date = self.reference_date 
@@ -55,7 +51,6 @@ def pe_on_submit(self, method):
 		rc.amount = self.base_received_amount
 		rc.exchange_rate = 1
 		rc.remarks = self.remarks
-		rc.reference_journal = journal.name
 		rc.docstatus=1
 		rc.deposit_bank=self.cheque_paid_to # add by jk
 		rc.cheque_status = 'Cheque Received'
@@ -118,46 +113,7 @@ def pe_on_cancel(self, method):
 		frappe.throw(_("Cannot Cancel this Payment Entry as it is Linked with Payable Cheque"))
 	return
 
-def make_journal_entry(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None):
 
-		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
-		cost_center = frappe.db.get_value("Company", self.company, "cost_center")
-		jv = frappe.new_doc("Journal Entry")
-		jv.posting_date = posting_date or nowdate()
-		jv.due_date = posting_date or nowdate()
-		if naming_series:
-			jv.naming_series=naming_series
-		jv.company = self.company
-		jv.cheque_no = self.reference_no
-		jv.cheque_date = self.reference_date
-		jv.user_remark = self.remarks
-		jv.multi_currency = 0
-		jv.set("accounts", [
-			{
-				"account": account1,
-				"party_type": self.party_type,
-				"party": self.party,
-				"cost_center": cost_center,
-				"project": self.project,
-				"debit_in_account_currency": amount if amount > 0 else 0,
-				"credit_in_account_currency": abs(amount) if amount < 0 else 0
-			}, {
-				"account": account2,
-				"party_type": None,
-				"party": None,
-				"cost_center": cost_center,
-				"project": self.project,
-				"credit_in_account_currency": amount if amount > 0 else 0,
-				"debit_in_account_currency": abs(amount) if amount < 0 else 0
-			}
-		])
-		#import json				
-		#frappe.throw(json.dumps(account))
-		#frappe.throw(_("cost center {0}").format(cost_center))
-		jv.insert(ignore_permissions=True)
-		jv.submit()
-		frappe.db.commit()
-		return jv
 #----------- journal entry payment -------------------------------------------
 
 def jv_before_submit(self, method):
@@ -193,11 +149,8 @@ def jv_on_submit(self, method):
 		hh_currency = erpnext.get_company_currency(self.company)
 		recnotes_acc = frappe.db.get_value("Company", self.company, "receivable_notes_account")
 		if not recnotes_acc:
-			frappe.throw(_("Receivable Notes Account not defined in the company setup page"))
+			frappe.throw(_("Receivable Notes Account not defined in the company setup page"))		
 		
-		crs_acc = frappe.db.get_value("Company", self.company, "cross_transaction_account")
-		if not crs_acc:
-			frappe.throw(_("Cross Transaction Account not defined in the company setup page"))
 		#-----------------------------------------------------
 		paynotes_acc = frappe.db.get_value("Company", self.company, "payable_notes_account")
 		if not paynotes_acc:
@@ -227,8 +180,7 @@ def jv_on_submit(self, method):
 			pgroup = frappe.db.get_value('Supplier', {'supplier_name': party}, ['supplier_group'])
 		
 		if self.cheque_pay_type=='Receive':
-			journal = make_journal_entry_jv(self, partyacc, crs_acc, self.cheque_amount, self.posting_date)
-
+			
 			rc = frappe.new_doc("Receivable Cheques")
 			rc.cheque_no = self.cheque_no 
 			rc.cheque_date = self.cheque_date 
@@ -240,7 +192,7 @@ def jv_on_submit(self, method):
 			rc.remarks = self.remark
 			rc.deposit_bank=self.cheque_paid_acc
 			rc.journal_entry=self.name
-			rc.reference_journal = journal.name
+			
 			rc.docstatus=1
 			rc.customer_group=pgroup
 			rc.cheque_status = 'Cheque Received'
@@ -285,63 +237,6 @@ def jv_on_submit(self, method):
 			pc.submit()
 			message = """<a href="#Form/Payable Cheques/%s" target="_blank">%s</a>""" % (pc.name, pc.name)
 			msgprint(_("Payable Cheque {0} created").format(comma_and(message)))
-	
-def make_journal_entry_jv(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None):
-	naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
-	cost_center = frappe.db.get_value("Company", self.company, "cost_center")
-	jv = frappe.new_doc("Journal Entry")
-	jv.posting_date = posting_date or nowdate()
-	jv.due_date = posting_date or nowdate()
-	if naming_series:
-		jv.naming_series=naming_series
-	jv.company = self.company
-	jv.cheque_no = self.cheque_no
-	jv.cheque_date = self.cheque_date
-	jv.user_remark = self.user_remark
-	jv.multi_currency = 0
-	account=[]
-	accd=''
-	i=0
-	accu=frappe.db.get_list("Journal Entry Account",
-		fields=['account', 'party_type','party','cost_center','project','sum(debit_in_account_currency) as debit','sum(credit_in_account_currency) as credit'],
-		filters={'party': ['!=', ''],'parent':self.name},
-		group_by='party')
-	#credit_in_account_currency
-	for acc in self.accounts:
-		if i==0:
-			accd={
-				"account": account2,
-				"party_type": None,
-				"party": None,
-				"cost_center": cost_center,
-				"project": acc.project,
-				"credit_in_account_currency": acc.debit_in_account_currency,
-				"debit_in_account_currency": 0
-				}
-			account.append(accd)
-			break		
-		i+=1
-
-	for acc2 in accu:
-		dbit=acc2.credit-acc2.debit
-		if dbit > 0:
-			accd={
-				"account": account1,
-				"party_type": acc2.party_type,
-				"party": acc2.party,
-				"cost_center": cost_center,
-				"project": acc2.project,
-				"debit_in_account_currency": dbit,
-				"credit_in_account_currency": 0,
-				}
-			account.append(accd)
-	#import json				
-	#frappe.throw(json.dumps(account))
-	jv.set("accounts", account)
-	jv.insert(ignore_permissions=True)
-	jv.submit()
-	frappe.db.commit()
-	return jv
 
 #---------  bulk update from list view pay rec--------------------------------
 @frappe.whitelist()
@@ -350,28 +245,24 @@ def update_cheque_status(docnames,status,posting_date):
 	docnames=json.loads(docnames)
 	msg=''
 	for dc in docnames:
-		crec=frappe.get_doc("Receivable Cheques", dc)		
-		uc_acc = frappe.db.get_value("Company", crec.company, "cheques_under_collection_account")
-		ct_acc = frappe.db.get_value("Company", crec.company, "cross_transaction_account")
+		crec=frappe.get_doc("Receivable Cheques", dc)				
 		notes_acc = frappe.db.get_value("Company", crec.company, "receivable_notes_account")
+
+		party_type=''
+		party=''
+		
 		if crec.payment_entry:
-			rec_acc = frappe.db.get_value("Payment Entry", crec.payment_entry, "paid_from")		
+			#rec_acc = frappe.db.get_value("Payment Entry", crec.payment_entry, "paid_from")
 			
-			if status == "Cheque Deposited":
-				msg+=status+" - "+dc+", "
-				make_journal_entry_bulk(crec,status,posting_date,uc_acc, notes_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False) 
-					
-			if status == "Cheque Collected":
-				msg+=status+" - "+dc+", "
-				party = frappe.db.get_value("Payment Entry", crec.payment_entry, "party")
-				party_type = frappe.db.get_value("Payment Entry", crec.payment_entry, "party_type")
-				make_journal_entry_bulk(crec,status,posting_date,ct_acc, uc_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
-				make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, rec_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
-					
+			
+			if status == "Cheque Realized":
+				make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, notes_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
+			
 			if status == "Cheque Returned":
 				msg+=status+" - "+dc+", "
-				make_journal_entry_bulk(crec,status,posting_date,notes_acc, uc_acc, crec.amount,party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
-					
+				#make_journal_entry_bulk(crec,status,posting_date,notes_acc, uc_acc, crec.amount,party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
+				cancel_payment_entry(crec,status,posting_date)
+
 			if status == "Cheque Rejected":
 				msg+=status+" - "+dc+", "
 				cancel_payment_entry(crec,status,posting_date)
@@ -381,19 +272,16 @@ def update_cheque_status(docnames,status,posting_date):
 				cancel_payment_entry(crec,status,posting_date)
 		else:
 			
-			if status == "Cheque Deposited":
+			if status == "Cheque Realized":
 				msg+=status+" - "+dc+", "
-				make_journal_entry_bulk(crec,status,posting_date,uc_acc, notes_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False) 
-					
-			if status == "Cheque Collected":
-				msg+=status+" - "+dc+", "
-				make_journal_entry_bulk(crec,status,posting_date,ct_acc, uc_acc, crec.amount, party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
-				make_journal_entry_bulk_jv(crec,status,posting_date,crec.deposit_bank, crec.journal_entry, crec.amount, cost_center=None,save=True, submit=True, last=True)
-					
+				#make_journal_entry_bulk_jv(crec,status,posting_date,crec.deposit_bank, crec.journal_entry, crec.amount, cost_center=None,save=True, submit=True, last=True)
+				make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, notes_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
+			
 			if status == "Cheque Returned":
 				msg+=status+" - "+dc+", "
-				make_journal_entry_bulk(crec,status,posting_date,notes_acc, uc_acc, crec.amount,party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
-					
+				#make_journal_entry_bulk(crec,status,posting_date,notes_acc, uc_acc, crec.amount,party_type=None, party=None, cost_center=None,save=True, submit=True, last=False)
+				cancel_payment_entry_jv(crec,status,posting_date)
+
 			if status == "Cheque Rejected":
 				msg+=status+" - "+dc+", "
 				cancel_payment_entry_jv(crec,status,posting_date)
@@ -419,22 +307,22 @@ def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amoun
 	jv.set("accounts", [
 		{
 			"account": account1,
-			"party_type": party_type if (status == "Cheque Cancelled" or status == "Cheque Rejected") else None,
-			"party": party if status == "Cheque Cancelled" else None,
+			"party_type": None,
+			"party": None,
 			"cost_center": cost_center,
 			"project": crec.project,
 			"debit_in_account_currency": amount if amount > 0 else 0,
 			"credit_in_account_currency": abs(amount) if amount < 0 else 0
 		}, {
 			"account": account2,
-			"party_type": party_type if status == "Cheque Received" or status == "Cheque Collected" else None,
-			"party": party if status == "Cheque Received" or status == "Cheque Collected" else None,
+			"party_type": party_type,
+			"party": party,
 			"cost_center": cost_center,
 			"project": crec.project,
 			"credit_in_account_currency": amount if amount > 0 else 0,
 			"debit_in_account_currency": abs(amount) if amount < 0 else 0,
-			"reference_type": "Journal Entry" if last == True else None,
-			"reference_name": crec.reference_journal if last == True else None
+			#"reference_type": "Journal Entry" if last == True else None,
+			#"reference_name": crec.reference_journal if last == True else None
 			}
 	])
 	if save or submit:
@@ -468,94 +356,9 @@ def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amoun
 	message = _("Journal Entry {0} created").format(comma_and(message))
 
 	return message
-def make_journal_entry_bulk_jv(crec, status,posting_date, account1, journal_entry, amount, cost_center=None,save=True, submit=False, last=False):
-	journalentry=frappe.get_doc("Journal Entry", crec.reference_journal)	
-	naming_series = frappe.db.get_value("Company", crec.company, "journal_entry_naming_series")
-	cost_center = frappe.db.get_value("Company", crec.company, "cost_center")
-	jv = frappe.new_doc("Journal Entry")
-	jv.posting_date = posting_date
-	if naming_series:
-		jv.naming_series=naming_series
-	jv.company = crec.company
-	jv.cheque_no = crec.cheque_no
-	jv.cheque_date = crec.cheque_date
-	jv.user_remark = crec.remarks or "Cheque Transaction"
-	jv.multi_currency = 0
-	account=[]
-	accd=''
-	i=0
-	#credit_in_account_currency
-	for acc in journalentry.accounts:
-		if acc.debit_in_account_currency != 0:
-			acamount=acc.debit_in_account_currency
-		else:	
-			acamount=acc.credit_in_account_currency
-
-		if i==0:
-			accd={				
-				"account": account1,
-				"party_type": None,
-				"party":None,
-				"cost_center": cost_center,
-				"project": acc.project,
-				"debit_in_account_currency": acamount,
-				"credit_in_account_currency": 0
-				}
-			account.append(accd)
-		else:
-
-			accd={
-				"account": acc.account,
-				"party_type": acc.party_type,
-				"party": acc.party,
-				"cost_center": cost_center,
-				"project": acc.project,
-				"credit_in_account_currency": acamount,
-				"debit_in_account_currency": 0,
-				"reference_type": "Journal Entry" if last == True else None,
-				"reference_name": crec.reference_journal if last == True else None
-				}
-
-			account.append(accd)
-			if acc.party:
-					account2=acc.account
-		i+=1
-	jv.set("accounts", account)
-	if save or submit:
-		jv.insert(ignore_permissions=True)
-
-		if submit:
-			jv.submit()
-
-	
-	midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
-	curidx=1
-	if midx and midx[0][0] is not None:
-		curidx = cint(midx[0][0])+1
-
-	hist=frappe.new_doc("Receivable Cheques Status")
-	hist.docstatus=1
-	hist.parent=crec.name
-	hist.parentfield='status_history'
-	hist.parenttype='Receivable Cheques'
-	hist.status=status
-	hist.idx=curidx
-	hist.transaction_date=posting_date
-	hist.bank=crec.deposit_bank
-	hist.debit_account=account1
-	hist.credit_account=account2
-	hist.journal_entry=jv.name
-	hist.insert(ignore_permissions=True)
-	frappe.db.commit()
-	message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (jv.name, jv.name)
-	#msgprint(_("Journal Entry {0} created").format(comma_and(message)))
-	message = _("Journal Entry {0} created").format(comma_and(message))
-
-	return message
 
 def cancel_payment_entry(crec, status,posting_date):
-	if crec.reference_journal:
-		frappe.get_doc("Journal Entry", crec.reference_journal).cancel()
+	
 	if crec.payment_entry: 
 		frappe.get_doc("Payment Entry", crec.payment_entry).cancel()
 	
@@ -580,8 +383,7 @@ def cancel_payment_entry(crec, status,posting_date):
 
 	return message
 def cancel_payment_entry_jv(crec, status,posting_date):
-	if crec.reference_journal:
-		frappe.get_doc("Journal Entry", crec.reference_journal).cancel()
+	
 	if crec.journal_entry:
 		frappe.get_doc("Journal Entry", crec.journal_entry).cancel()
 	

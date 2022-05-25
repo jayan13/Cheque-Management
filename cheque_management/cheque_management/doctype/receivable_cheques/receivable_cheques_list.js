@@ -13,6 +13,9 @@ frappe.listview_settings['Receivable Cheques Status'] = {
 		} 
 		if(cheque_status=="Cheque Collected") {
 			return [__("Cheque Collected"), "green", "cheque_status,=,'Cheque Collected'"];
+		}
+		if(cheque_status=="Cheque Realized") {
+			return [__("Cheque Realized"), "green", "cheque_status,=,'Cheque Realized'"];
 		} 
 		if(cheque_status=="Cheque Returned") {
 			return [__("Cheque Returned"), "orange", "cheque_status,=,'Cheque Returned'"];
@@ -46,6 +49,37 @@ frappe.listview_settings['Receivable Cheques'] = {
 							args: {
 								docnames:docnames1,
 								status:"Cheque Collected",
+								posting_date: values.posting_date
+							},
+							callback: function(r) {
+								console.log(r.message);
+							}
+						});
+					
+						
+				},
+				__("Transaction Posting Date"),
+				__("Confirm")
+			);
+			
+		 });
+
+		 listview.page.actions.find('[data-label="Cheque Realized"]').click(function()
+		 {
+			
+			const docnames1 = listview.get_checked_items(true).map(docname => docname.toString());
+			
+			frappe.prompt([
+				{'fieldname': 'posting_date', 'fieldtype': 'Date', 'label': 'Posting Date', 'reqd': 1}
+				],
+				function(values){
+					
+						frappe.call({
+							method: "cheque_management.api.update_cheque_status",
+							freeze: true,
+							args: {
+								docnames:docnames1,
+								status:"Cheque Realized",
 								posting_date: values.posting_date
 							},
 							callback: function(r) {

@@ -4,7 +4,7 @@
   "doctype": "Workflow",
   "document_type": "Receivable Cheques",
   "is_active": 1,
-  "modified": "2017-05-12 12:58:30.447324",
+  "modified": "2022-05-25 09:16:40.536899",
   "name": "Receivable Cheques Cycle",
   "override_status": 0,
   "parent": null,
@@ -89,15 +89,28 @@
     "state": "Cheque Cancelled",
     "update_field": "cheque_status",
     "update_value": "Cheque Cancelled"
+   },
+   {
+    "allow_edit": "All",
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Receivable Cheques Cycle",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "state": "Cheque Realized",
+    "update_field": "cheque_status",
+    "update_value": "Cheque Realized"
    }
   ],
   "transitions": [
    {
-    "action": "Cheque Deposited",
+    "action": "Cheque Realized",
     "allow_self_approval": 0,
     "allowed": "All",
     "condition": null,
-    "next_state": "Cheque Deposited",
+    "next_state": "Cheque Realized",
     "parent": "Receivable Cheques Cycle",
     "parentfield": "transitions",
     "parenttype": "Workflow",
@@ -113,17 +126,6 @@
     "parentfield": "transitions",
     "parenttype": "Workflow",
     "state": "Cheque Received"
-   },
-   {
-    "action": "Cheque Collected",
-    "allow_self_approval": 0,
-    "allowed": "All",
-    "condition": null,
-    "next_state": "Cheque Collected",
-    "parent": "Receivable Cheques Cycle",
-    "parentfield": "transitions",
-    "parenttype": "Workflow",
-    "state": "Cheque Deposited"
    },
    {
     "action": "Cheque Returned",
@@ -134,40 +136,18 @@
     "parent": "Receivable Cheques Cycle",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Cheque Deposited"
+    "state": "Cheque Received"
    },
    {
     "action": "Cheque Rejected",
-    "allow_self_approval": 0,
+    "allow_self_approval": 1,
     "allowed": "All",
     "condition": null,
     "next_state": "Cheque Rejected",
     "parent": "Receivable Cheques Cycle",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Cheque Returned"
-   },
-   {
-    "action": "Cheque Deposited",
-    "allow_self_approval": 0,
-    "allowed": "All",
-    "condition": null,
-    "next_state": "Cheque Deposited",
-    "parent": "Receivable Cheques Cycle",
-    "parentfield": "transitions",
-    "parenttype": "Workflow",
-    "state": "Cheque Returned"
-   },
-   {
-    "action": "Cheque Cancelled",
-    "allow_self_approval": 0,
-    "allowed": "All",
-    "condition": null,
-    "next_state": "Cheque Cancelled",
-    "parent": "Receivable Cheques Cycle",
-    "parentfield": "transitions",
-    "parenttype": "Workflow",
-    "state": "Cheque Returned"
+    "state": "Cheque Received"
    }
   ],
   "workflow_name": "Receivable Cheques Cycle",

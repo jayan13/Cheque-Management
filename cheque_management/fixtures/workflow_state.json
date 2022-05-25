@@ -94,5 +94,17 @@
   "parenttype": null,
   "style": "Success",
   "workflow_state_name": "Cheque Deducted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2022-05-24 19:19:43.956228",
+  "name": "Cheque Realized",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "style": "",
+  "workflow_state_name": "Cheque Realized"
  }
 ]

@@ -132,11 +132,9 @@ doc_events = {
 
 fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
 		"Company-cb_00",
-		"Company-cheques_default_accounts",
-		"Company-cheques_under_collection_account",
+		"Company-cheques_default_accounts",		
 		"Company-payable_notes_account",
 		"Company-receivable_notes_account",
-        "Company-cross_transaction_account",
         "Receivable Cheques-reference_journal",
         "Payment Entry-cheque_paid_to",
         "Payment Entry-cheque_paid_from",
@@ -152,6 +150,9 @@ fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
         "Cheque%"
     ]]},
     {"dt": "Workflow Action", "filters": [["name", "like", 
+        "Cheque%"
+    ]]},
+    {"dt": "Workflow Action Master", "filters": [["name", "like", 
         "Cheque%"
     ]]},
     { "doctype": "Client Script", "filters": [ ["name", "in", ( "Company-Form", )] ] },

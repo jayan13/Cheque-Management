@@ -10,6 +10,7 @@ frappe.ui.form.on('Receivable Cheques', {
 				if(doc.status=="Cheque Received") {	return "lightblue"}
 				if(doc.status=="Cheque Deposited") {	return "blue"}
 				if(doc.status=="Cheque Collected") {	return "green"}
+				if(doc.status=="Cheque Realized") {	return "green"}
 				if(doc.status=="Cheque Returned") {	return "orange"}
 				if(doc.status=="Cheque Rejected") {	return "red"}
 				if(doc.status=="Cheque Cancelled") {	return "black"}
