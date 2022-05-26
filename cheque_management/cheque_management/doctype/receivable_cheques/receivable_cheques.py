@@ -45,7 +45,7 @@ class ReceivableCheques(Document):
 		if self.payment_entry:
 			rec_acc = frappe.db.get_value("Payment Entry", self.payment_entry, "paid_from")			
 			if self.cheque_status == "Cheque Realized":
-				self.make_journal_entry(self.deposit_bank, notes_acc, self.amount, self.posting_date, party_type, party, cost_center=None, 
+				self.make_journal_entry(self.deposit_bank, notes_acc, self.amount, self.posting_date, 'Customer', self.customer, cost_center=None, 
 						save=True, submit=True, last=True)
 			
 			if self.cheque_status == "Cheque Cancelled":
@@ -59,7 +59,7 @@ class ReceivableCheques(Document):
 		else:
 			
 			if self.cheque_status == "Cheque Realized":
-				self.make_journal_entry(self.deposit_bank, notes_acc, self.amount, self.posting_date, party_type, party, cost_center=None, 
+				self.make_journal_entry(self.deposit_bank, notes_acc, self.amount, self.posting_date, 'Customer', self.customer, cost_center=None, 
 						save=True, submit=True, last=True)
 
 			if self.cheque_status == "Cheque Cancelled":

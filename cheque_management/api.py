@@ -250,7 +250,7 @@ def update_cheque_status(docnames,status,posting_date):
 			
 			
 			if status == "Cheque Realized":
-				make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, notes_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
+				make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, notes_acc, crec.amount, 'Customer', crec.customer, cost_center=None,save=True, submit=True, last=True)
 			
 			if status == "Cheque Returned":
 				msg+=status+" - "+dc+", "
@@ -269,7 +269,7 @@ def update_cheque_status(docnames,status,posting_date):
 			if status == "Cheque Realized":
 				msg+=status+" - "+dc+", "
 				#make_journal_entry_bulk_jv(crec,status,posting_date,crec.deposit_bank, crec.journal_entry, crec.amount, cost_center=None,save=True, submit=True, last=True)
-				make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, notes_acc, crec.amount, party_type, party, cost_center=None,save=True, submit=True, last=True)
+				make_journal_entry_bulk(crec,status,posting_date,crec.deposit_bank, notes_acc, crec.amount, 'Customer', crec.customer, cost_center=None,save=True, submit=True, last=True)
 			
 			if status == "Cheque Returned":
 				msg+=status+" - "+dc+", "
@@ -420,7 +420,7 @@ def update_cheque_status_pay(docnames,status,posting_date):
 
 		if status == "Cheque Deducted":
 			msg+=status+" - "+dc+", "
-			make_journal_entry_bulk_pay(cpay,status,posting_date,notes_acc, cpay.bank,cpay.amount,party_type=None, party=None, cost_center=None,save=True, submit=True)
+			make_journal_entry_bulk_pay(cpay,status,posting_date,notes_acc, cpay.bank,cpay.amount,cpay.party_type, cpay.party, cost_center=None,save=True, submit=True)
 						
 		if status == "Cheque Cancelled":
 			msg+=status+" - "+dc+", "
