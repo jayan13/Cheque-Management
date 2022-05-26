@@ -109,9 +109,10 @@ def pe_on_submit(self, method):
 #----------- journal entry payment -------------------------------------------
 
 def jv_before_submit(self, method):
-	if self.cheque_date and self.cheque_date <= nowdate():
-		return
+	
 	if self.mode_of_payment=='Cheque':
+		if self.cheque_date <= nowdate():
+			return
 		for acc in self.accounts:
 			account_type=frappe.db.get_value('Account', acc.account, 'account_type')
 			if account_type=='Bank':
@@ -135,9 +136,10 @@ def jv_before_submit(self, method):
 			
 		
 def jv_on_submit(self, method):
-	if self.cheque_date and self.cheque_date <= nowdate():
-		return
+	
 	if self.mode_of_payment=='Cheque':
+		if self.cheque_date <= nowdate():
+			return
 		hh_currency = erpnext.get_company_currency(self.company)
 		recnotes_acc = frappe.db.get_value("Company", self.company, "receivable_notes_account")
 		if not recnotes_acc:
