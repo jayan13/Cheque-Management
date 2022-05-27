@@ -447,8 +447,8 @@ def make_journal_entry_bulk_pay(cpay,status,posting_date,account1, account2, amo
 	jv.set("accounts", [
 			{
 				"account": account1,
-				"party_type": party_type if (status == "Cheque Cancelled") else None,
-				"party": party if status == "Cheque Cancelled" else None,
+				"party_type": party_type if (status == "Cheque Deducted") else None,
+				"party": party if status == "Cheque Deducted" else None,
 				"cost_center": cost_center,
 				"project": cpay.project,
 				"debit_in_account_currency": amount if amount > 0 else 0,

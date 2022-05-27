@@ -39,7 +39,7 @@ class PayableCheques(Document):
 			frappe.throw(_("Default Payable Account not defined in the company setup page"))
 
 		if self.cheque_status == "Cheque Deducted":
-			self.make_journal_entry(notes_acc, self.bank, self.amount, self.posting_date, party_type=None, party=None, cost_center=None, 
+			self.make_journal_entry(notes_acc, self.bank, self.amount, self.posting_date, self.party_type, self.party, cost_center=None, 
 					save=True, submit=True)
 		if self.cheque_status == "Cheque Cancelled":
 			self.cancel_payment_entry()
@@ -99,8 +99,8 @@ class PayableCheques(Document):
 		jv.set("accounts", [
 			{
 				"account": account1,
-				"party_type": party_type if (self.cheque_status == "Cheque Cancelled") else None,
-				"party": party if self.cheque_status == "Cheque Cancelled" else None,
+				"party_type": party_type if (self.cheque_status == "Cheque Deducted") else None,
+				"party": party if self.cheque_status == "Cheque Deducted" else None,
 				"cost_center": cost_center,
 				"project": self.project,
 				"debit_in_account_currency": amount if amount > 0 else 0,
