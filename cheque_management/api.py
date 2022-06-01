@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe, erpnext
-from frappe.utils import flt, cstr, nowdate, comma_and, cint
+from frappe.utils import flt, cstr, nowdate, comma_and, cint, getdate
 from frappe import throw, msgprint, _
 
 def pe_before_submit(self, method):
@@ -296,7 +296,14 @@ def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amoun
 	jv.company = crec.company
 	jv.cheque_no = crec.cheque_no
 	jv.cheque_date = crec.cheque_date
-	jv.user_remark = crec.remarks or "Cheque Transaction"
+	voucher=crec.payment_entry or crec.journal_entry
+	if crec.journal_entry:
+		postingdate=frappe.db.get_value('Journal Entry',crec.journal_entry,'posting_date')
+	else:	
+		postingdate=frappe.db.get_value('Payment Entry',crec.payment_entry,'posting_date')
+
+	jv.user_remark=crec.remarks+" PDC Realization aganist "+voucher+" Date: "+ str(postingdate)+". "
+	
 	jv.multi_currency = 0
 	jv.set("accounts", [
 		{
@@ -433,7 +440,7 @@ def update_cheque_status_pay(docnames,status,posting_date):
 
 def make_journal_entry_bulk_pay(cpay,status,posting_date,account1, account2, amount, party_type=None, party=None, cost_center=None, save=True, submit=False):
 
-	naming_series = frappe.db.get_value("Company", cpay.company, "journal_entry_naming_series")
+	naming_series = frappe.db.get_value("Company", cpay.company, "payment_journal_entry_naming_series")
 	cost_center = frappe.db.get_value("Company", cpay.company, "cost_center")
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date
@@ -442,7 +449,13 @@ def make_journal_entry_bulk_pay(cpay,status,posting_date,account1, account2, amo
 	jv.company = cpay.company
 	jv.cheque_no = cpay.cheque_no
 	jv.cheque_date = cpay.cheque_date
-	jv.user_remark = cpay.remarks or "Cheque Transaction"
+	voucher=cpay.payment_entry or cpay.journal_entry
+	if cpay.journal_entry:
+		postingdate=frappe.db.get_value('Journal Entry',cpay.journal_entry,'posting_date')
+	else:	
+		postingdate=frappe.db.get_value('Payment Entry',cpay.payment_entry,'posting_date')
+
+	jv.user_remark=cpay.remarks+" PDC Realization aganist "+voucher+" Date: "+str(postingdate)+". "
 	jv.multi_currency = 0
 	jv.set("accounts", [
 			{
@@ -494,7 +507,10 @@ def make_journal_entry_bulk_pay(cpay,status,posting_date,account1, account2, amo
 	return message
 
 def cancel_payment_entry_bulk_pay(cpay,status,posting_date):
-	if cpay.payment_entry: 
+	if cpay.payment_entry:
+		remarks = frappe.db.get_value('Payment Entry', cpay.payment_entry, 'remarks')
+		remarks=remarks+'<br>'+nowdate()+' - '+status
+		frappe.db.set_value('Payment Entry', cpay.payment_entry,'remarks', remarks)  
 		frappe.get_doc("Payment Entry", cpay.payment_entry).cancel()
 				
 	midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
@@ -519,6 +535,9 @@ def cancel_payment_entry_bulk_pay(cpay,status,posting_date):
 	return message
 def cancel_payment_entry_bulk_pay_jv(cpay,status,posting_date):
 	if cpay.journal_entry:
+		remark = frappe.db.get_value('Journal Entry', cpay.journal_entry, 'remark')
+		remark=remark+'<br>'+nowdate()+' - '+status
+		frappe.db.set_value('Journal Entry', cpay.journal_entry,'remark', remark)
 		frappe.get_doc("Journal Entry", cpay.journal_entry).cancel()
 
 	midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))

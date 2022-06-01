@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import flt, cstr, nowdate, comma_and
+from frappe.utils import flt, cstr, nowdate, comma_and, getdate
 from frappe import throw, msgprint, _
 from frappe.model.document import Document
 from erpnext.accounts.utils import get_account_currency
@@ -67,10 +67,16 @@ class PayableCheques(Document):
 		return cheque_status
 
 	def cancel_payment_entry(self):
-		if self.payment_entry: 
+		if self.payment_entry:
+			remarks = frappe.db.get_value('Payment Entry', self.payment_entry, 'remarks')
+			remarks=remarks+'<br>'+nowdate()+' - '+self.cheque_status
+			frappe.db.set_value('Payment Entry', self.payment_entry,'remarks', remarks)  
 			frappe.get_doc("Payment Entry", self.payment_entry).cancel()
 			message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (self.payment_entry, self.payment_entry)
 		if self.journal_entry:
+			remark = frappe.db.get_value('Journal Entry', self.journal_entry, 'remark')
+			remark=remark+'<br>'+nowdate()+' - '+self.cheque_status
+			frappe.db.set_value('Journal Entry', self.journal_entry,'remark', remark)
 			frappe.get_doc("Journal Entry", self.journal_entry).cancel()
 			message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (self.journal_entry, self.journal_entry)
 				
@@ -85,7 +91,7 @@ class PayableCheques(Document):
 			
 	def make_journal_entry(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None, 
 							save=True, submit=False):
-		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
+		naming_series = frappe.db.get_value("Company", self.company, "payment_journal_entry_naming_series")
 		cost_center = frappe.db.get_value("Company", self.company, "cost_center")						
 		jv = frappe.new_doc("Journal Entry")
 		jv.posting_date = posting_date or nowdate()
@@ -94,7 +100,12 @@ class PayableCheques(Document):
 		jv.cheque_date = self.cheque_date
 		if naming_series:
 			jv.naming_series=naming_series
-		jv.user_remark = self.remarks or "Cheque Transaction"
+		voucher=self.payment_entry or self.journal_entry
+		if self.journal_entry:
+			postingdate=frappe.db.get_value('Journal Entry',self.journal_entry,'posting_date')
+		else:	
+			postingdate=frappe.db.get_value('Payment Entry',self.payment_entry,'posting_date')
+		jv.user_remark=self.remarks+" PDC Realization aganist "+voucher+" Date: "+ str(postingdate)+". "
 		jv.multi_currency = 0
 		jv.set("accounts", [
 			{

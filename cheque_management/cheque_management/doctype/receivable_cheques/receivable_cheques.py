@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import flt, cstr, nowdate, comma_and
+from frappe.utils import flt, cstr, nowdate, comma_and, getdate
 from frappe import msgprint, _
 from frappe.model.document import Document
 from erpnext.accounts.utils import get_account_currency
@@ -148,7 +148,14 @@ class ReceivableCheques(Document):
 		jv.cheque_date = self.cheque_date
 		if naming_series:
 			jv.naming_series=naming_series
-		jv.user_remark = self.remarks or "Cheque Transaction"
+		#jv.user_remark = self.remarks or "Cheque Transaction"
+		voucher=self.payment_entry or self.journal_entry
+		if self.journal_entry:
+			postingdate=frappe.db.get_value('Journal Entry',self.journal_entry,'posting_date')
+		else:	
+			postingdate=frappe.db.get_value('Payment Entry',self.payment_entry,'posting_date')
+		jv.user_remark=self.remarks+" PDC Realization aganist "+voucher+" Date: "+ str(postingdate)+". "
+
 		jv.multi_currency = 0
 		jv.set("accounts", [
 			{

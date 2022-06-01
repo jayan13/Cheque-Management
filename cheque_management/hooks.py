@@ -140,7 +140,8 @@ fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
         "Company-journal_entry_naming_series",
         "Journal Entry-cheque_paid_acc",
         "Journal Entry-cheque_pay_type",
-        "Journal Entry-cheque_amount"
+        "Journal Entry-cheque_amount",
+        "Company-payment_journal_entry_naming_series"
 	]]]},
     {"dt": "Workflow", "filters": [["name", "like", 
         "%Cheques Cycle"
