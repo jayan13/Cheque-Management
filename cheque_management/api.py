@@ -12,6 +12,10 @@ def pe_before_submit(self, method):
 	if self.reference_date and self.reference_date <= self.posting_date:
 		return
 	if self.mode_of_payment == "Cheque" and self.payment_type == "Receive":
+		account_type=frappe.db.get_value('Account', self.paid_to, 'account_type')
+		if account_type!='Bank':
+			frappe.throw(_("{0} is not a bank account, Check Paid To Account must be a Back Account ").format(self.paid_to))
+
 		notes_acc = frappe.db.get_value("Company", self.company, "receivable_notes_account")
 		if not notes_acc:
 			frappe.throw(_("Receivable Notes Account not defined in the company setup page"))
@@ -19,6 +23,9 @@ def pe_before_submit(self, method):
 		self.db_set("cheque_paid_to", self.paid_to)	
 		self.db_set("paid_to", notes_acc)
 	if self.mode_of_payment == "Cheque" and self.payment_type == "Pay":
+		account_type=frappe.db.get_value('Account', self.paid_from, 'account_type')
+		if account_type!='Bank':
+			frappe.throw(_("{0} is not a bank account, Check Paid From Account must be a Back Account ").format(self.paid_from))
 		notes_acc = frappe.db.get_value("Company", self.company, "payable_notes_account")
 		if not notes_acc:
 			frappe.throw(_("Payable Notes Account not defined in the company setup page"))
