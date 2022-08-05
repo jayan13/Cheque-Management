@@ -32,7 +32,9 @@ frappe.listview_settings['Receivable Cheques Status'] = {
 frappe.listview_settings['Receivable Cheques'] = {
 
 	onload(listview) {
-		 
+
+		listview.page.actions.find('[data-label="Delete"]').parent().css("display", "none");		
+
 		 listview.page.actions.find('[data-label="Cheque Collected"]').click(function()
 		 {
 			

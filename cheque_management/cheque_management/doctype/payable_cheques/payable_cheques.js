@@ -5,15 +5,26 @@ frappe.ui.form.on('Payable Cheques', {
 	onload: function(frm) {
 		// formatter for Payable Cheques Status
 		//frm.page.actions_btn_group.show();
-		frm.set_indicator_formatter('status',
+		frm.set_indicator_formatter('cheque_status',
 			function(doc) { 
-				if(doc.status=="Cheque Issued") {	return "lightblue"}
-				if(doc.status=="Cheque Deducted") {	return "green"}
-				if(doc.status=="Cheque Cancelled") {	return "black"}
+				if(doc.cheque_status=="Cheque Issued") {	return "lightblue"}
+				if(doc.cheque_status=="Cheque Deducted") {	return "green"}
+				if(doc.cheque_status=="Cheque Cancelled") {	return "black"}
 		})
 	},
+	before_workflow_action:async (frm) =>{
+		let promise = new Promise((resolve,reject) =>{		
+		frappe.confirm("Do you want to update check status", () => resolve(), () => reject());
+		});
+		await promise.catch((err)=>frappe.throw(err));
+		
+		},
 	refresh: function(frm) {
 		//frm.page.actions_btn_group.show();
+		setTimeout(() => {
+			frm.remove_custom_button('Cancel');	
+			$('[data-label="Amend"]').hide();								
+			}, 20);
 		if(frm.doc.cheque_status=="Cheque Issued") {
 			frm.set_df_property("bank", 'read_only', 0);
 		} else { frm.set_df_property("bank", 'read_only', 1); }

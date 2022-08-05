@@ -578,3 +578,92 @@ def get_journal_naming_series():
 		res=nm[0].splitlines()
 
 	return res
+
+def jv_cancel(self, method):
+	
+	pay=frappe.db.get_value('Payable Cheques', {'journal_entry': self.name}, ['name'])
+	rec=frappe.db.get_value('Receivable Cheques', {'journal_entry': self.name}, ['name'])
+	if pay:
+		frappe.db.set_value('Payable Cheques', pay, 'cheque_status', 'Cheque Cancelled')
+		frappe.db.set_value('Payable Cheques', pay, 'docstatus', '2')
+		cpay = frappe.get_doc("Payable Cheques",pay)
+		midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
+		curidx=1
+		if midx and midx[0][0] is not None:
+			curidx = cint(midx[0][0])+1
+
+		hist=frappe.new_doc("Payable Cheques Status")
+		hist.docstatus=1
+		hist.parent=cpay.name
+		hist.parentfield='status_history'
+		hist.parenttype='Payable Cheques'
+		hist.status="Cheque Cancelled"
+		hist.idx=curidx
+		hist.transaction_date=self.posting_date
+		hist.bank=cpay.bank
+		hist.insert(ignore_permissions=True)
+	elif rec:
+		
+		frappe.db.set_value('Receivable Cheques', rec, 'cheque_status', 'Cheque Cancelled')
+		frappe.db.set_value('Receivable Cheques', rec, 'docstatus', '2')
+		crec=frappe.get_doc("Receivable Cheques", rec)
+		midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
+		curidx=1
+		if midx and midx[0][0] is not None:
+			curidx = cint(midx[0][0])+1
+
+		hist=frappe.new_doc("Receivable Cheques Status")
+		hist.docstatus=1
+		hist.parent=crec.name
+		hist.parentfield='status_history'
+		hist.parenttype='Receivable Cheques'
+		hist.status="Cheque Cancelled"
+		hist.idx=curidx
+		hist.transaction_date=self.posting_date
+		hist.bank=crec.deposit_bank
+		hist.insert(ignore_permissions=True)
+
+
+def pe_cancel(self, method):	
+	pay=frappe.db.get_value('Payable Cheques', {'payment_entry': self.name}, ['name'])
+	rec=frappe.db.get_value('Receivable Cheques', {'payment_entry': self.name}, ['name'])
+
+	if pay:
+		frappe.db.set_value('Payable Cheques', pay, 'cheque_status', 'Cheque Cancelled')
+		frappe.db.set_value('Payable Cheques', pay, 'docstatus', '2')
+		cpay = frappe.get_doc("Payable Cheques",pay)
+		midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
+		curidx=1
+		if midx and midx[0][0] is not None:
+			curidx = cint(midx[0][0])+1
+
+		hist=frappe.new_doc("Payable Cheques Status")
+		hist.docstatus=1
+		hist.parent=cpay.name
+		hist.parentfield='status_history'
+		hist.parenttype='Payable Cheques'
+		hist.status="Cheque Cancelled"
+		hist.idx=curidx
+		hist.transaction_date=self.posting_date
+		hist.bank=cpay.bank
+		hist.insert(ignore_permissions=True)
+	elif rec:
+		
+		frappe.db.set_value('Receivable Cheques', rec, 'cheque_status', 'Cheque Cancelled')
+		frappe.db.set_value('Receivable Cheques', rec, 'docstatus', '2')
+		crec=frappe.get_doc("Receivable Cheques", rec)
+		midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
+		curidx=1
+		if midx and midx[0][0] is not None:
+			curidx = cint(midx[0][0])+1
+
+		hist=frappe.new_doc("Receivable Cheques Status")
+		hist.docstatus=1
+		hist.parent=crec.name
+		hist.parentfield='status_history'
+		hist.parenttype='Receivable Cheques'
+		hist.status="Cheque Cancelled"
+		hist.idx=curidx
+		hist.transaction_date=self.posting_date
+		hist.bank=crec.deposit_bank
+		hist.insert(ignore_permissions=True)

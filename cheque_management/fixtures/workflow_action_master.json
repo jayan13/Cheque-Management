@@ -2,6 +2,16 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "modified": "2022-06-30 10:25:40.408081",
+  "name": "Cheque Deducted",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "workflow_action_name": "Cheque Deducted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "modified": "2022-05-25 08:12:23.957215",
   "name": "Cheque Deposited",
   "parent": null,

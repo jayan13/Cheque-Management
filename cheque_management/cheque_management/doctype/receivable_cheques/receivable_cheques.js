@@ -1,23 +1,37 @@
 // Copyright (c) 2017, Direction and contributors
 // For license information, please see license.txt
 
+
 frappe.ui.form.on('Receivable Cheques', {
 	onload: function(frm) {
 		// formatter for Receivable Cheques Status
 		//frm.page.actions_btn_group.show();
-		frm.set_indicator_formatter('status',
+		frm.set_indicator_formatter('cheque_status',
 			function(doc) { 
-				if(doc.status=="Cheque Received") {	return "lightblue"}
-				if(doc.status=="Cheque Deposited") {	return "blue"}
-				if(doc.status=="Cheque Collected") {	return "green"}
-				if(doc.status=="Cheque Realized") {	return "green"}
-				if(doc.status=="Cheque Returned") {	return "orange"}
-				if(doc.status=="Cheque Rejected") {	return "red"}
-				if(doc.status=="Cheque Cancelled") {	return "black"}
+				if(doc.cheque_status=="Cheque Received") {	return "lightblue"}
+				if(doc.cheque_status=="Cheque Deposited") {	return "blue"}
+				if(doc.cheque_status=="Cheque Collected") {	return "green"}
+				if(doc.cheque_status=="Cheque Realized") {	return "green"}
+				if(doc.cheque_status=="Cheque Returned") {	return "orange"}
+				if(doc.cheque_status=="Cheque Rejected") {	return "red"}
+				if(doc.cheque_status=="Cheque Cancelled") {	return "black"}
 		})
+		
 	},
+	before_workflow_action:async (frm) =>{
+		let promise = new Promise((resolve,reject) =>{
+		//console.log(frm.selected_workflow_action)
+		frappe.confirm("Do you want to update check status", () => resolve(), () => reject());
+		});
+		await promise.catch((err)=>frappe.throw(err));
+		
+		},		
 	refresh: function(frm) {
-		//frm.page.actions_btn_group.show();
+		setTimeout(() => {
+			frm.remove_custom_button('Cancel');	
+			$('[data-label="Amend"]').hide();								
+			}, 20);
+			
 		if (frm.doc.cheque_status=="Cheque Received" || frm.doc.cheque_status=="Cheque Returned") {
 			frm.set_df_property("deposit_bank", 'read_only', 0);
 			frm.set_df_property("deposit_bank", 'reqd', 1);

@@ -23,7 +23,25 @@ class PayableCheques(Document):
 		
 	def validate(self):
 		self.cheque_status = self.get_status()
-		
+
+	@frappe.whitelist()
+	def on_trash(self):
+		if self.payment_entry:			
+			if frappe.db.get_value('Payment Entry', {'name':self.payment_entry,'docstatus':'1'}, 'name'):
+				frappe.throw(_(" Cheque entry have associated payment entry {0} , please cancel payment entry").format(self.payment_entry))
+		if self.journal_entry:
+			if frappe.db.get_value('Journal Entry', {'name':self.payment_entry,'docstatus':'1'}, 'name'):
+				frappe.throw(_(" Cheque entry have associated journal entry {0} , please cancel journal entry").format(self.journal_entry))
+	
+	@frappe.whitelist()
+	def on_cancel(self):
+		if self.payment_entry:			
+			if frappe.db.get_value('Payment Entry', {'name':self.payment_entry,'docstatus':'1'}, 'name'):
+				frappe.throw(_(" Cheque entry have associated payment entry {0} , please cancel payment entry").format(self.payment_entry))
+		if self.journal_entry:
+			if frappe.db.get_value('Journal Entry', {'name':self.payment_entry,'docstatus':'1'}, 'name'):
+				frappe.throw(_(" Cheque entry have associated journal entry {0} , please cancel journal entry").format(self.journal_entry))
+
 	@frappe.whitelist()
 	def on_update(self):
 		notes_acc = frappe.db.get_value("Company", self.company, "payable_notes_account")

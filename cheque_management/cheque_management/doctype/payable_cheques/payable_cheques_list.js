@@ -19,7 +19,7 @@ frappe.listview_settings['Payable Cheques Status'] = {
 frappe.listview_settings['Payable Cheques'] = {
 
 	onload(listview) {
-		 console.log("list js loaded");
+		listview.page.actions.find('[data-label="Delete"]').parent().css("display", "none");
 		 listview.page.actions.find('[data-label="Cheque Issued"]').click(function()
 		 {
 			
