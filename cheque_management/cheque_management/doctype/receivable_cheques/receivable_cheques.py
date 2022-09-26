@@ -71,7 +71,12 @@ class ReceivableCheques(Document):
 				self.cancel_payment_entry()
 			
 			if self.cheque_status == "Cheque Returned":
-				self.cancel_payment_entry()
+				self.make_journal_entry(self.deposit_bank, notes_acc, self.amount, self.posting_date, 'Customer', self.customer, cost_center=None, 
+						save=True, submit=True, last=True)	
+				self.make_journal_entry_ret(rec_acc,self.deposit_bank, self.amount, self.posting_date, 'Customer', self.customer, cost_center=None, 
+						save=True, submit=True, last=True)
+
+				#self.cancel_payment_entry()
 			if self.cheque_status == "Cheque Rejected":
 				#msgprint("rejected")
 				self.cancel_payment_entry()
@@ -85,8 +90,11 @@ class ReceivableCheques(Document):
 				self.cancel_payment_entry_jv()
 			
 			if self.cheque_status == "Cheque Returned":
-				self.cancel_payment_entry_jv()
-
+				self.make_journal_entry(self.deposit_bank, notes_acc, self.amount, self.posting_date, 'Customer', self.customer, cost_center=None, 
+						save=True, submit=True, last=True)
+				def_recv=frappe.db.get_value("Company", self.company, "default_receivable_account")
+				self.make_journal_entry_ret(def_recv,self.deposit_bank, self.amount, self.posting_date, 'Customer', self.customer, cost_center=None, 
+						save=True, submit=True, last=True)
 			if self.cheque_status == "Cheque Rejected":
 				#msgprint("rejected")
 				self.cancel_payment_entry_jv()
@@ -189,6 +197,70 @@ class ReceivableCheques(Document):
 				"account": account2,
 				"party_type": party_type,
 				"party": party,
+				"cost_center": cost_center,
+				"project": self.project,
+				"credit_in_account_currency": amount if amount > 0 else 0,
+				"debit_in_account_currency": abs(amount) if amount < 0 else 0,
+				#"reference_type": "Journal Entry" if last == True else None,
+				#"reference_name": self.reference_journal if last == True else None
+			}
+		])
+		if save or submit:
+			jv.insert(ignore_permissions=True)
+
+			if submit:
+				jv.submit()
+
+		self.append("status_history", {
+								"status": self.cheque_status,
+								"transaction_date": nowdate(),
+								"bank": self.deposit_bank,
+								"debit_account": account1,
+								"credit_account": account2,
+								"journal_entry": jv.name
+							})
+		self.bank_changed = 1
+		self.submit()
+		frappe.db.commit()
+		message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (jv.name, jv.name)
+		msgprint(_("Journal Entry {0} created").format(comma_and(message)))
+		#message = _("Journal Entry {0} created").format(comma_and(message))
+
+		return message
+
+	def make_journal_entry_ret(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None, 
+							save=True, submit=False, last=False):
+		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
+		cost_center = frappe.db.get_value("Company", self.company, "cost_center")	
+		jv = frappe.new_doc("Journal Entry")
+		jv.posting_date = posting_date or nowdate()
+		jv.company = self.company
+		jv.cheque_no = self.cheque_no
+		jv.cheque_date = self.cheque_date
+		if naming_series:
+			jv.naming_series=naming_series
+		#jv.user_remark = self.remarks or "Cheque Transaction"
+		voucher=self.payment_entry or self.journal_entry
+		if self.journal_entry:
+			postingdate=frappe.db.get_value('Journal Entry',self.journal_entry,'posting_date')
+		else:	
+			postingdate=frappe.db.get_value('Payment Entry',self.payment_entry,'posting_date')
+		jv.user_remark=self.remarks+" PDC Return aganist "+voucher+" Date: "+ str(postingdate)+". "
+
+		jv.multi_currency = 0
+		jv.set("accounts", [
+			{
+				"account": account1,
+				"party_type": party_type,
+				"party": party,
+				"cost_center": cost_center,
+				"project": self.project,
+				"debit_in_account_currency": amount if amount > 0 else 0,
+				"credit_in_account_currency": abs(amount) if amount < 0 else 0
+			}, {
+				"account": account2,				
+				"party_type": None,
+				"party": None,
 				"cost_center": cost_center,
 				"project": self.project,
 				"credit_in_account_currency": amount if amount > 0 else 0,
