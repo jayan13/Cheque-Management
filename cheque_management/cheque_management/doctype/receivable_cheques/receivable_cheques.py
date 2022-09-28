@@ -230,7 +230,7 @@ class ReceivableCheques(Document):
 
 	def make_journal_entry_ret(self, account1, account2, amount, posting_date=None, party_type=None, party=None, cost_center=None, 
 							save=True, submit=False, last=False):
-		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_naming_series")
+		naming_series = frappe.db.get_value("Company", self.company, "journal_entry_ret_naming_series")
 		cost_center = frappe.db.get_value("Company", self.company, "cost_center")	
 		jv = frappe.new_doc("Journal Entry")
 		jv.posting_date = posting_date or nowdate()
