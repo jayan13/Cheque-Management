@@ -122,6 +122,24 @@ def jv_before_submit(self, method):
 	if self.mode_of_payment=='Cheque':
 		if self.cheque_date <= self.posting_date:
 			return
+		#--------------- temp fix ---
+		party_type='Customer'
+		party=''
+		pgroup=''
+		partyacc=''
+		for acc in self.accounts:			
+			if acc.party_type:
+				party_type=acc.party_type
+				partyacc=acc.account
+
+			if acc.party:
+				party=acc.party
+				partyacc=acc.account
+
+		if party=='':
+			return
+		#--------------- temp fix  end---
+
 		for acc in self.accounts:
 			account_type=frappe.db.get_value('Account', acc.account, 'account_type')
 			if account_type=='Bank':
@@ -163,10 +181,11 @@ def jv_on_submit(self, method):
 			if acc.party:
 				party=acc.party
 				partyacc=acc.account
-
+		#--------------- temp fix ---
 		if party=='':
 			return
-
+		#--------------- temp fix  end ---
+		
 		hh_currency = erpnext.get_company_currency(self.company)
 		recnotes_acc = frappe.db.get_value("Company", self.company, "receivable_notes_account")
 		if not recnotes_acc:
