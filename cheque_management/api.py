@@ -149,6 +149,24 @@ def jv_on_submit(self, method):
 	if self.mode_of_payment=='Cheque':
 		if self.cheque_date <= self.posting_date:
 			return
+
+		party_type='Customer'
+		party=''
+		pgroup=''
+		partyacc=''
+
+		for acc in self.accounts:			
+			if acc.party_type:
+				party_type=acc.party_type
+				partyacc=acc.account
+
+			if acc.party:
+				party=acc.party
+				partyacc=acc.account
+
+		if party=='':
+			return
+
 		hh_currency = erpnext.get_company_currency(self.company)
 		recnotes_acc = frappe.db.get_value("Company", self.company, "receivable_notes_account")
 		if not recnotes_acc:
@@ -163,19 +181,7 @@ def jv_on_submit(self, method):
 		if not rec_acc:
 			frappe.throw(_("Default Payable Account not defined in the company setup page"))
 
-		party_type='Customer'
-		party=''
-		pgroup=''
-		partyacc=''
-
-		for acc in self.accounts:			
-			if acc.party_type:
-				party_type=acc.party_type
-				partyacc=acc.account
-
-			if acc.party:
-				party=acc.party
-				partyacc=acc.account	
+			
 
 		if party_type=='Customer':
 			pgroup = frappe.db.get_value('Customer', {'customer_name': party}, ['customer_group'])
