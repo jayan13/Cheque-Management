@@ -218,7 +218,7 @@ def jv_on_submit(self, method):
 			pc = frappe.new_doc("Payable Cheques")
 			pc.cheque_no = self.cheque_no 
 			pc.cheque_date = self.cheque_date 
-			pc.party_type = self.party_type
+			pc.party_type = party_type
 			pc.party = party
 			pc.company = self.company			
 			pc.currency = hh_currency
