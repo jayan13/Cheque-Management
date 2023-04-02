@@ -123,7 +123,12 @@ class PayableCheques(Document):
 			postingdate=frappe.db.get_value('Journal Entry',self.journal_entry,'posting_date')
 		else:	
 			postingdate=frappe.db.get_value('Payment Entry',self.payment_entry,'posting_date')
-		jv.user_remark=self.remarks+" PDC Realization aganist "+voucher+" Date: "+ str(postingdate)+". "
+
+		remarks=''
+		if self.remarks:
+			remarks=str(self.remarks)
+			
+		jv.user_remark=remarks+" PDC Realization aganist "+str(voucher)+" Date: "+ str(postingdate)+". "
 		jv.multi_currency = 0
 		jv.set("accounts", [
 			{
