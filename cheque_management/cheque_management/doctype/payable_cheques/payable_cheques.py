@@ -86,24 +86,30 @@ class PayableCheques(Document):
 
 	def cancel_payment_entry(self):
 		if self.payment_entry:
-			remarks = frappe.db.get_value('Payment Entry', self.payment_entry, 'remarks')
-			remarks=remarks+'<br>'+nowdate()+' - '+self.cheque_status
-			frappe.db.set_value('Payment Entry', self.payment_entry,'remarks', remarks)  
-			frappe.get_doc("Payment Entry", self.payment_entry).cancel()
-			message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (self.payment_entry, self.payment_entry)
+			docstatus=frappe.db.get_value('Payment Entry', self.payment_entry, 'docstatus')
+			if docstatus!=2:
+				remarks = frappe.db.get_value('Payment Entry', self.payment_entry, 'remarks')
+				remarks=remarks+'<br>'+nowdate()+' - '+self.cheque_status
+				frappe.db.set_value('Payment Entry', self.payment_entry,'remarks', remarks)
+				frappe.db.set_value('Payment Entry', self.payment_entry,'workflow_state', 'Cancelled')  
+				frappe.get_doc("Payment Entry", self.payment_entry).cancel()
+				message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (self.payment_entry, self.payment_entry)
 		if self.journal_entry:
-			remark = frappe.db.get_value('Journal Entry', self.journal_entry, 'remark')
-			remark=remark+'<br>'+nowdate()+' - '+self.cheque_status
-			frappe.db.set_value('Journal Entry', self.journal_entry,'remark', remark)
-			frappe.get_doc("Journal Entry", self.journal_entry).cancel()
-			message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (self.journal_entry, self.journal_entry)
-				
-		self.append("status_history", {
-								"status": self.cheque_status,
-								"transaction_date": nowdate(),
-								"bank": self.bank
-							})
-		self.submit()		
+			docstatus=frappe.db.get_value('Journal Entry', self.journal_entry, 'docstatus')
+			if docstatus!=2:
+				remark = frappe.db.get_value('Journal Entry', self.journal_entry, 'remark')
+				remark=remark+'<br>'+nowdate()+' - '+self.cheque_status
+				frappe.db.set_value('Journal Entry', self.journal_entry,'remark', remark)
+				frappe.db.set_value('Journal Entry', self.journal_entry,'workflow_state', 'Cancelled')
+				frappe.get_doc("Journal Entry", self.journal_entry).cancel()
+				message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (self.journal_entry, self.journal_entry)
+		if not self.payment_entry and not self.journal_entry:		
+			self.append("status_history", {
+									"status": self.cheque_status,
+									"transaction_date": nowdate(),
+									"bank": self.bank
+								})
+			self.submit()		
 		msgprint(_("Payment Entry {0} Cancelled").format(comma_and(message)))
 
 			

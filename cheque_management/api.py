@@ -393,10 +393,11 @@ def make_journal_entry_bulk(crec, status,posting_date, account1, account2, amoun
 	return message
 
 def cancel_payment_entry(crec, status,posting_date):
-	
+	#frappe.msgprint('cancel api')
 	if crec.payment_entry:
 		remarks = frappe.db.get_value('Payment Entry', crec.payment_entry, 'remarks')
 		remarks=remarks+'<br>'+nowdate()+' - '+status
+		frappe.db.set_value('Payment Entry', crec.payment_entry,'workflow_state', 'Cancelled')
 		frappe.db.set_value('Payment Entry', crec.payment_entry,'remarks', remarks)  
 		frappe.get_doc("Payment Entry", crec.payment_entry).cancel()
 	
@@ -425,6 +426,7 @@ def cancel_payment_entry_jv(crec, status,posting_date):
 	if crec.journal_entry:
 		remark = frappe.db.get_value('Journal Entry', crec.journal_entry, 'remark')
 		remark=remark+'<br>'+nowdate()+' - '+status
+		frappe.db.set_value('Journal Entry', crec.journal_entry,'workflow_state', 'Cancelled')
 		frappe.db.set_value('Journal Entry', crec.journal_entry,'remark', remark)	
 		frappe.get_doc("Journal Entry", crec.journal_entry).cancel()
 	
@@ -544,7 +546,8 @@ def cancel_payment_entry_bulk_pay(cpay,status,posting_date):
 	if cpay.payment_entry:
 		remarks = frappe.db.get_value('Payment Entry', cpay.payment_entry, 'remarks')
 		remarks=remarks+'<br>'+nowdate()+' - '+status
-		frappe.db.set_value('Payment Entry', cpay.payment_entry,'remarks', remarks)  
+		frappe.db.set_value('Payment Entry', cpay.payment_entry,'remarks', remarks)
+		frappe.db.set_value('Payment Entry', cpay.payment_entry,'workflow_state', 'Cancelled')  
 		frappe.get_doc("Payment Entry", cpay.payment_entry).cancel()
 				
 	midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
@@ -572,6 +575,7 @@ def cancel_payment_entry_bulk_pay_jv(cpay,status,posting_date):
 		remark = frappe.db.get_value('Journal Entry', cpay.journal_entry, 'remark')
 		remark=remark+'<br>'+nowdate()+' - '+status
 		frappe.db.set_value('Journal Entry', cpay.journal_entry,'remark', remark)
+		frappe.db.set_value('Journal Entry', cpay.journal_entry,'workflow_state', 'Cancelled')
 		frappe.get_doc("Journal Entry", cpay.journal_entry).cancel()
 
 	midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
@@ -609,8 +613,7 @@ def jv_cancel(self, method):
 	pay=frappe.db.get_value('Payable Cheques', {'journal_entry': self.name}, ['name'])
 	rec=frappe.db.get_value('Receivable Cheques', {'journal_entry': self.name}, ['name'])
 	if pay:
-		frappe.db.set_value('Payable Cheques', pay, 'cheque_status', 'Cheque Cancelled')
-		frappe.db.set_value('Payable Cheques', pay, 'docstatus', '2')
+		
 		cpay = frappe.get_doc("Payable Cheques",pay)
 		midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
 		curidx=1
@@ -627,10 +630,12 @@ def jv_cancel(self, method):
 		hist.transaction_date=self.posting_date
 		hist.bank=cpay.bank
 		hist.insert(ignore_permissions=True)
+		if cpay.cheque_status != 'Cheque Cancelled':
+			frappe.db.set_value('Payable Cheques', pay, 'cheque_status', 'Cheque Cancelled')
+			frappe.db.set_value('Payable Cheques', pay, 'docstatus', '2')
 	elif rec:
 		
-		frappe.db.set_value('Receivable Cheques', rec, 'cheque_status', 'Cheque Cancelled')
-		frappe.db.set_value('Receivable Cheques', rec, 'docstatus', '2')
+		
 		crec=frappe.get_doc("Receivable Cheques", rec)
 		midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
 		curidx=1
@@ -647,15 +652,17 @@ def jv_cancel(self, method):
 		hist.transaction_date=self.posting_date
 		hist.bank=crec.deposit_bank
 		hist.insert(ignore_permissions=True)
+		if crec.cheque_status != 'Cheque Cancelled':
+			frappe.db.set_value('Receivable Cheques', rec, 'cheque_status', 'Cheque Cancelled')
+			frappe.db.set_value('Receivable Cheques', rec, 'docstatus', '2')
 
 
-def pe_cancel(self, method):	
+def pe_cancel(self, method):
+	#frappe.msgprint('cancel hook')	
 	pay=frappe.db.get_value('Payable Cheques', {'payment_entry': self.name}, ['name'])
 	rec=frappe.db.get_value('Receivable Cheques', {'payment_entry': self.name}, ['name'])
 
 	if pay:
-		frappe.db.set_value('Payable Cheques', pay, 'cheque_status', 'Cheque Cancelled')
-		frappe.db.set_value('Payable Cheques', pay, 'docstatus', '2')
 		cpay = frappe.get_doc("Payable Cheques",pay)
 		midx=frappe.db.sql("""select max(idx) from `tabPayable Cheques Status` where parent=%s""",(cpay.name))
 		curidx=1
@@ -672,10 +679,11 @@ def pe_cancel(self, method):
 		hist.transaction_date=self.posting_date
 		hist.bank=cpay.bank
 		hist.insert(ignore_permissions=True)
+		if cpay.cheque_status != 'Cheque Cancelled':
+			frappe.db.set_value('Payable Cheques', pay, 'cheque_status', 'Cheque Cancelled')
+			frappe.db.set_value('Payable Cheques', pay, 'docstatus', '2')
 	elif rec:
 		
-		frappe.db.set_value('Receivable Cheques', rec, 'cheque_status', 'Cheque Cancelled')
-		frappe.db.set_value('Receivable Cheques', rec, 'docstatus', '2')
 		crec=frappe.get_doc("Receivable Cheques", rec)
 		midx=frappe.db.sql("""select max(idx) from `tabReceivable Cheques Status` where parent=%s""",(crec.name))
 		curidx=1
@@ -692,3 +700,6 @@ def pe_cancel(self, method):
 		hist.transaction_date=self.posting_date
 		hist.bank=crec.deposit_bank
 		hist.insert(ignore_permissions=True)
+		if crec.cheque_status != 'Cheque Cancelled':
+			frappe.db.set_value('Receivable Cheques', rec, 'cheque_status', 'Cheque Cancelled')
+			frappe.db.set_value('Receivable Cheques', rec, 'docstatus', '2')

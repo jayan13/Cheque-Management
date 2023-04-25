@@ -39,7 +39,7 @@ frappe.ui.form.on('Payable Cheques', {
 				if (frm.doc.cheque_status=="Cheque Cancelled") {
 					frm.call('on_update').then(result => {
 							frm.page.actions_btn_group.show();
-							frm.refresh();
+							frm.reload_doc();
 					}); 
 				}
 				else {
@@ -51,7 +51,7 @@ frappe.ui.form.on('Payable Cheques', {
 								frm.doc.posting_date = values.posting_date;
 								frm.call('on_update').then(result => {
 										frm.page.actions_btn_group.show();
-										frm.refresh();
+										frm.reload_doc();
 								}); 
 							}
 						},

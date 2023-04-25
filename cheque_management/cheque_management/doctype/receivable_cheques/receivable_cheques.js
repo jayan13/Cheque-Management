@@ -50,7 +50,9 @@ frappe.ui.form.on('Receivable Cheques', {
 				if (frm.doc.cheque_status=="Cheque Cancelled" || frm.doc.cheque_status=="Cheque Rejected") {
 					frm.call('on_update').then(result => {
 							frm.page.actions_btn_group.show();
-							frm.refresh();
+							frm.reload_doc();
+							//frm.refresh_fields();
+							//frm.refresh_field('status_history')
 					}); 
 				}
 				else {
@@ -63,7 +65,7 @@ frappe.ui.form.on('Receivable Cheques', {
 
 							frm.call('on_update').then(result => {
 								frm.page.actions_btn_group.show();
-								frm.refresh();
+								frm.reload_doc();
 								})
 								//frm.refresh_fields();
 							//}

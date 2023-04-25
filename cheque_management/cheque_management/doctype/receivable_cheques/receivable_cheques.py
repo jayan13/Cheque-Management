@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import flt, cstr, nowdate, comma_and, getdate
+from frappe.utils import flt, cstr, nowdate, comma_and, getdate ,cint
 from frappe import msgprint, _
 from frappe.model.document import Document
 from erpnext.accounts.utils import get_account_currency
@@ -121,23 +121,29 @@ class ReceivableCheques(Document):
 		return cheque_status
 
 	def cancel_payment_entry(self):
-
 		
-
 		if self.payment_entry:
-			remarks = frappe.db.get_value('Payment Entry', self.payment_entry, 'remarks')
-			remarks=remarks+'<br>'+nowdate()+' - '+self.cheque_status
-			frappe.db.set_value('Payment Entry', self.payment_entry,'remarks', remarks) 
-			frappe.get_doc("Payment Entry", self.payment_entry).cancel()
+			docstatus=frappe.db.get_value('Payment Entry', self.payment_entry, 'docstatus')
+			if docstatus!=2:
+				remarks = frappe.db.get_value('Payment Entry', self.payment_entry, 'remarks')
+				remarks=remarks+'<br>'+str(nowdate())+' - '+str(self.cheque_status)
+				frappe.db.set_value('Payment Entry', self.payment_entry,'remarks', remarks)
+				frappe.db.set_value('Payment Entry', self.payment_entry,'workflow_state', 'Cancelled')
+				frappe.get_doc("Payment Entry", self.payment_entry).cancel()			
+		else:	
+			self.append("status_history", {
+									"status": self.cheque_status,
+									"transaction_date": nowdate(),
+									"bank": self.deposit_bank
+								})
+			self.bank_changed = 1
+			#self.submit()
+			self.save(ignore_permissions=True,ignore_version=True)
+
+			frappe.db.set_value('Receivable Cheques', self.name, 'bank_changed', '1')
 
 		
-		self.append("status_history", {
-								"status": self.cheque_status,
-								"transaction_date": nowdate(),
-								"bank": self.deposit_bank
-							})
-		self.bank_changed = 1
-		self.submit()
+
 		message = """<a href="#Form/Payment Entry/%s" target="_blank">%s</a>""" % (self.payment_entry, self.payment_entry)
 		#msgprint(_("Payment Entry {0} Cancelled").format(comma_and(message)))
 		message = _("Payment Entry {0} Cancelled").format(comma_and(message))
@@ -146,18 +152,22 @@ class ReceivableCheques(Document):
 	def cancel_payment_entry_jv(self):
 		
 		if self.journal_entry:
-			remark = frappe.db.get_value('Journal Entry', self.journal_entry, 'remark')
-			remark=remark+'<br>'+nowdate()+' - '+self.cheque_status
-			frappe.db.set_value('Journal Entry', self.journal_entry,'remark', remark)
-			frappe.get_doc("Journal Entry", self.journal_entry).cancel()
-
-		self.append("status_history", {
-								"status": self.cheque_status,
-								"transaction_date": nowdate(),
-								"bank": self.deposit_bank
-							})
-		self.bank_changed = 1
-		self.submit()
+			docstatus=frappe.db.get_value('Journal Entry', self.journal_entry, 'docstatus')
+			if docstatus!=2:
+				remark = frappe.db.get_value('Journal Entry', self.journal_entry, 'remark')
+				remark=remark+'<br>'+str(nowdate())+' - '+str(self.cheque_status)
+				frappe.db.set_value('Journal Entry', self.journal_entry,'remark', remark)
+				frappe.db.set_value('Journal Entry', self.journal_entry,'workflow_state', 'Cancelled')
+				frappe.get_doc("Journal Entry", self.journal_entry).cancel()
+		else:
+			self.append("status_history", {
+									"status": self.cheque_status,
+									"transaction_date": nowdate(),
+									"bank": self.deposit_bank
+								})
+			self.bank_changed = 1
+			#self.submit()
+			self.save(ignore_permissions=True,ignore_version=True)
 		message = """<a href="#Form/Journal Entry/%s" target="_blank">%s</a>""" % (self.journal_entry, self.journal_entry)
 		#msgprint(_("Payment Entry {0} Cancelled").format(comma_and(message)))
 		message = _("Payment Entry {0} Cancelled").format(comma_and(message))
