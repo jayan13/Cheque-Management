@@ -120,7 +120,7 @@ def pe_on_submit(self, method):
 def jv_before_submit(self, method):
 	
 	if self.mode_of_payment=='Cheque':
-		if self.cheque_date <= self.posting_date:
+		if self.cheque_date and getdate(self.cheque_date) <= getdate(self.posting_date):
 			return
 		#--------------- temp fix ---
 		party_type='Customer'
@@ -165,7 +165,7 @@ def jv_before_submit(self, method):
 def jv_on_submit(self, method):
 	
 	if self.mode_of_payment=='Cheque':
-		if self.cheque_date <= self.posting_date:
+		if self.cheque_date and getdate(self.cheque_date) <= getdate(self.posting_date):
 			return
 
 		party_type='Customer'
