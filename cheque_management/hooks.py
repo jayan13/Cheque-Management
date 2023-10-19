@@ -158,4 +158,11 @@ fixtures = [{"dt": "Custom Field", "filters": [["name", "in", [
         "Cheque%"
     ]]},
     { "doctype": "Client Script", "filters": [ ["name", "in", ( "Company-Form", )] ] },
+    { "doctype": "Report", "filters": [ ["name", "in", 
+		( 
+			"General Ledger PDC",
+			"General Ledger PDC Card",
+		)
+		
+	] ] },
 ]
