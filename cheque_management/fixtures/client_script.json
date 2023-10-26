@@ -4,12 +4,12 @@
   "doctype": "Client Script",
   "dt": "Company",
   "enabled": 1,
-  "modified": "2022-06-01 06:56:06.592303",
+  "modified": "2022-10-05 15:59:11.875525",
   "name": "Company-Form",
   "parent": null,
   "parentfield": null,
   "parenttype": null,
-  "script": "frappe.ui.form.on('Company', {\n\tsetup(frm) {\n\t\tfrappe.call({\n        method: \"cheque_management.api.get_journal_naming_series\",\n        callback: function (r) {\n        \tif(r.message)\n\t\t\t{\n\t\t\t\n\t\t\t\tfrm.set_df_property('journal_entry_naming_series', 'options',r.message);\n\t\t\t\tfrm.set_df_property('payment_journal_entry_naming_series', 'options',r.message);\n                frm.refresh_field('journal_entry_naming_series');\n                frm.refresh_field('payment_journal_entry_naming_series');\n\t\t\t}\n        }\n    });\n\t}\n})",
+  "script": "frappe.ui.form.on('Company', {\n\tsetup(frm) {\n\t\tfrappe.call({\n        method: \"cheque_management.api.get_journal_naming_series\",\n        callback: function (r) {\n        \tif(r.message)\n\t\t\t{\n\t\t\t\n\t\t\t\tfrm.set_df_property('journal_entry_naming_series', 'options',r.message);\n\t\t\t\tfrm.set_df_property('payment_journal_entry_naming_series', 'options',r.message);\n\t\t\t\tfrm.set_df_property('journal_entry_ret_naming_series', 'options',r.message);\n\t\t\t\tfrm.set_df_property('payroll_jv_naming_series', 'options',r.message);\n\t\t\t\t\n                frm.refresh_field('journal_entry_naming_series');\n                frm.refresh_field('payment_journal_entry_naming_series');\n                frm.refresh_field('journal_entry_ret_naming_series');\n                frm.refresh_field('payroll_jv_naming_series');\n\t\t\t}\n        }\n    });\n\t}\n})",
   "view": "Form"
  }
 ]
